@@ -1,19 +1,23 @@
 @import 'tailwindcss';
 
+* {
+    @apply scroll-smooth font-sans;
+}
+
 a.inline {
     @apply text-blue-500 hover:underline;
 }
 
 h1 {
-    @apply font-display text-3xl font-bold;
+    @apply text-3xl font-bold;
 }
 
 h2 {
-    @apply font-display text-2xl;
+    @apply text-2xl;
 }
 
 h3 {
-    @apply font-display text-xl;
+    @apply text-xl;
 }
 
 .secondary {

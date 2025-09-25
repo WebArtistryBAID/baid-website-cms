@@ -5,8 +5,8 @@ import NextTopLoader from 'nextjs-toploader'
 import { ThemeModeScript } from 'flowbite-react'
 
 export const metadata: Metadata = {
-    title: 'BAID CMS',
-    description: 'The platform for BAID Website\'s approval process'
+    title: 'Helium',
+    description: 'BAID\'s website'
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {

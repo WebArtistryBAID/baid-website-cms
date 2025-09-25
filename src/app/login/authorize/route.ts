@@ -77,7 +77,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         name: user.name,
         phone: user.phone,
         pinyin: user.pinyin,
-        permissions: user.permissions,
+        roles: user.roles,
         userType: user.type,
         gender: user.gender,
         type: 'internal'
