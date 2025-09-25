@@ -1,6 +1,6 @@
-# BAID Website CMS 
+# Helium
 
-The platform for BAID Website's approval process. Built with Next.js.
+BAID's website. Built with Next.js.
 
 ## Get Started
 
@@ -38,7 +38,7 @@ To contribute, simply open a pull request.
 ## License
 
 ```
-    The platform for BAID Website's approval process.
+    BAID website.
     Copyright (C) 2025  Lin & Team WebArtistry
 
     This program is free software: you can redistribute it and/or modify
