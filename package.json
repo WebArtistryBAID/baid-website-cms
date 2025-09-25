@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@measured/puck": "^0.20.2",
     "@prisma/client": "^6.16.2",
     "accept-language": "^3.0.20",
     "flowbite-react": "^0.12.9",

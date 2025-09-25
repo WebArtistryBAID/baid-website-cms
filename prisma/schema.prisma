@@ -8,16 +8,25 @@ datasource db {
 }
 
 model User {
-  id                 Int                @id
-  name               String
-  pinyin             String
-  phone              String?
-  permissions        String[]
-  logs               UserAuditLog[]
-  type               UserType
-  gender             Gender
-  createdAt          DateTime           @default(now())
-  updatedAt          DateTime           @updatedAt
+  id        Int            @id
+  name      String
+  pinyin    String
+  phone     String?
+  roles     Role[]
+  logs      UserAuditLog[]
+  type      UserType
+  gender    Gender
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  ownedPages Page[]
+  ownedPosts Post[]
+}
+
+enum Role {
+  admin
+  editor
+  writer
 }
 
 enum UserType {
@@ -33,13 +42,63 @@ enum Gender {
 
 enum UserAuditLogType {
   login
+
+  autoCreatePost
+
+  writerCreatePost
+  writerEditPost
+  editorApprovePost
+  adminApprovePost
+  adminPublishPost
+
+  writerCreatePage
+  writerEditPage
+  editorApprovePage
+  adminApprovePage
+  adminPublishPage
+
+  unpublishPost
+  unpublishPage
 }
 
 model UserAuditLog {
-  id      Int              @id @default(autoincrement())
-  time    DateTime         @default(now())
-  type    UserAuditLogType
-  user    User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId  Int?
-  values  String[]
+  id     Int              @id @default(autoincrement())
+  time   DateTime         @default(now())
+  type   UserAuditLogType
+  user   User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId Int?
+  values String[]
+}
+
+model Page {
+  id                 Int      @id
+  name               String
+  // Special slugs: /posts (for posts list), /post/yyyy/MM/dd/title (for individual post)
+  slug               String   @unique
+  contentPublishedEN String? // Puck editor content
+  contentPublishedZH String? // Puck editor content
+  contentDraftEN     String // Puck editor content
+  contentDraftZH     String // Puck editor content
+  editorsApproved    Int[] // Array of user IDs
+  adminsApproved     Int[] // Array of user IDs
+  creatorId          Int
+  creator            User     @relation(fields: [creatorId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Post {
+  id                 Int      @id
+  title              String
+  slug               String   @unique
+  contentPublishedEN String? // Markdown
+  contentPublishedZH String? // Markdown
+  contentDraftEN     String // Markdown
+  contentDraftZH     String // Markdown
+  editorsApproved    Int[] // Array of user IDs
+  adminsApproved     Int[] // Array of user IDs
+  creatorId          Int
+  creator            User     @relation(fields: [creatorId], references: [id])
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
