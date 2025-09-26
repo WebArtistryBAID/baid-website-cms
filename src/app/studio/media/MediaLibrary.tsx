@@ -125,7 +125,7 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                                                 }}>
                                             <img className="w-full aspect-square object-cover"
                                                  alt={`图片: ${image.name}`}
-                                                 src={`${uploadServePath}/${image.sha1}.webp`}/>
+                                                 src={`${uploadServePath}/${image.sha1}_thumb.webp`}/>
                                         </button>
                                     )}
                                 </div>
@@ -140,7 +140,7 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                                         <div className="flex gap-3 mb-3 items-center">
                                             <a target="_blank" href={`${uploadServePath}/${selectedImage?.sha1}.webp`}>
                                                 <img className="h-24" alt={`图片: ${selectedImage?.name}`}
-                                                     src={`${uploadServePath}/${selectedImage?.sha1}.webp`}/>
+                                                     src={`${uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
                                             </a>
                                             <div>
                                                 <p className="font-bold">{selectedImage?.name}</p>

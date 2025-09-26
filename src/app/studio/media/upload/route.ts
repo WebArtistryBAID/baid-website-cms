@@ -27,10 +27,15 @@ export async function POST(req: NextRequest): Promise<Response> {
 
     const fileBuffer = Buffer.from(await file.arrayBuffer())
     const webpBuffer = await sharp(fileBuffer).webp().toBuffer()
+    const thumbnailBuffer = await sharp(fileBuffer).resize(300, 200, {
+        fit: 'inside',
+        withoutEnlargement: true
+    }).webp().toBuffer()
     const hash = crypto.createHash('sha1').update(webpBuffer).digest('hex')
     const outputPath = getPath(hash + '.webp')
 
     await fs.writeFile(outputPath, webpBuffer)
+    await fs.writeFile(getPath(hash + '_thumb.webp'), thumbnailBuffer)
 
     return NextResponse.json({ hash })
 }
