@@ -21,7 +21,7 @@ h3 {
 }
 
 .secondary {
-    @apply text-gray-800 dark:text-gray-400;
+    @apply text-gray-800;
 }
 
 .container {
@@ -29,11 +29,11 @@ h3 {
 }
 
 .tr {
-    @apply bg-white dark:border-gray-700 dark:bg-gray-800;
+    @apply bg-white;
 }
 
 .th {
-    @apply whitespace-nowrap font-medium text-gray-900 dark:text-white;
+    @apply whitespace-nowrap font-medium text-gray-900;
 }
 
 b {

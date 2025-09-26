@@ -19,8 +19,9 @@ model User {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
-  ownedPages Page[]
-  ownedPosts Post[]
+  ownedPages  Page[]
+  ownedPosts  Post[]
+  ownedImages Image[]
 }
 
 enum Role {
@@ -59,6 +60,9 @@ enum UserAuditLogType {
 
   unpublishPost
   unpublishPage
+
+  uploadImage
+  deleteImage
 }
 
 model UserAuditLog {
@@ -71,7 +75,7 @@ model UserAuditLog {
 }
 
 model Page {
-  id                 Int      @id
+  id                 Int      @id @default(autoincrement())
   name               String
   // Special slugs: /posts (for posts list), /post/yyyy/MM/dd/title (for individual post)
   slug               String   @unique
@@ -88,7 +92,7 @@ model Page {
 }
 
 model Post {
-  id                 Int      @id
+  id                 Int      @id @default(autoincrement())
   title              String
   slug               String   @unique
   contentPublishedEN String? // Markdown
@@ -101,4 +105,17 @@ model Post {
   creator            User     @relation(fields: [creatorId], references: [id])
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+}
+
+model Image {
+  id         Int      @id @default(autoincrement())
+  sha1       String   @unique
+  name       String
+  altText    String
+  width      Int
+  height     Int
+  sizeKB     Int
+  uploader   User?    @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
+  uploaderId Int?
+  createdAt  DateTime @default(now())
 }

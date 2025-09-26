@@ -1,0 +1,180 @@
+'use client'
+
+import {
+    Button,
+    Label,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
+    Pagination,
+    TabItem,
+    Tabs, TabsRef,
+    TextInput
+} from 'flowbite-react'
+import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
+import { useEffect, useRef, useState } from 'react'
+import Paginated from '@/app/lib/Paginated'
+import { Image } from '@prisma/client'
+import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/media/media-actions'
+import If from '@/app/lib/If'
+import UploadAreaClient from '@/app/media/upload/UploadAreaClient'
+
+function formatSize(kb: number): string {
+    if (kb < 1024) {
+        return `${kb} KB`
+    } else {
+        return `${(kb / 1024).toFixed(2)} MB`
+    }
+}
+
+export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
+    const [ page, setPage ] = useState<Paginated<Image>>(init)
+    const [ loading, setLoading ] = useState(false)
+    const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
+    const [ deleteConfirm, setDeleteConfirm ] = useState(false)
+    const [ uploadServePath, setUploadServePath ] = useState<string>('')
+    const [ showUploadForm, setShowUploadForm ] = useState(false)
+    const [ imageName, setImageName ] = useState('')
+    const [ imageAlt, setImageAlt ] = useState('')
+    const [ imageHash, setImageHash ] = useState('')
+    const [ currentPage, setCurrentPage ] = useState(0)
+
+    const tabsRef = useRef<TabsRef>(null)
+
+    useEffect(() => {
+        (async () => {
+            setUploadServePath(await getUploadServePath())
+
+            if (page.page !== currentPage) {
+                setPage(await getImages(currentPage))
+            }
+        })()
+    }, [ currentPage, page.page ])
+
+    return <>
+        <Modal show={showUploadForm} size="md" popup onClose={() => setShowUploadForm(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl">设置图片信息</h3>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="name">名称</Label>
+                        </div>
+                        <TextInput id="name" value={imageName}
+                                   onChange={e => setImageName(e.currentTarget.value)}
+                                   required/>
+                    </div>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="alt">解释文字 (由屏幕阅读器读出)</Label>
+                        </div>
+                        <TextInput id="alt" value={imageAlt}
+                                   onChange={e => setImageAlt(e.currentTarget.value)}
+                                   required/>
+                    </div>
+
+                    <img width={500} height={200} src={uploadServePath + imageHash + '.webp'} alt="已上传文件"
+                         className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={loading} onClick={async () => {
+                    setLoading(true)
+                    setSelectedImage(await createImage({
+                        name: imageName,
+                        altText: imageAlt,
+                        sha1: imageHash
+                    }))
+                    setLoading(false)
+                    setCurrentPage(0)
+                    setPage(await getImages(0))
+                    setShowUploadForm(false)
+                    tabsRef.current?.setActiveTab(0)
+                }}>确认</Button>
+                <Button pill color="alternative" disabled={loading} onClick={() => setShowUploadForm(false)}>
+                    取消
+                </Button>
+            </ModalFooter>
+        </Modal>
+
+        <div className="p-8">
+            <Tabs aria-label="媒体库选项卡" variant="default" ref={tabsRef}>
+                <TabItem active title="图片" icon={HiPhoto}>
+                    <If condition={page.pages < 1}>
+                        <div className="flex flex-col justify-center items-center">
+                            <p>暂时没有上传图片。</p>
+                        </div>
+                    </If>
+                    <If condition={page.pages > 0}>
+                        <div className="flex gap-4">
+                            <div>
+                                <div className="grid grid-cols-6 gap-4 mb-3">
+                                    {page.items.map(image =>
+                                        <button key={image.sha1} className={`w-full h-full rounded
+                                     ${selectedImage?.id === image.id ? 'ring-4 ring-blue-500' : ''}`}
+                                                onClick={() => {
+                                                    setDeleteConfirm(false)
+                                                    if (selectedImage?.id === image.id) {
+                                                        setSelectedImage(null)
+                                                    } else {
+                                                        setSelectedImage(image)
+                                                    }
+                                                }}>
+                                            <img className="w-full aspect-square object-cover"
+                                                 alt={`图片: ${image.name}`}
+                                                 src={`${uploadServePath}/${image.sha1}.webp`}/>
+                                        </button>
+                                    )}
+                                </div>
+                                <Pagination currentPage={currentPage + 1} onPageChange={p => setCurrentPage(p - 1)}
+                                            totalPages={page.pages}/>
+                            </div>
+
+                            <If condition={selectedImage != null}>
+                                <div>
+                                    <p className="font-bold secondary">图片详情</p>
+                                    <div className="flex gap-3 mb-3 items-center">
+                                        <img className="h-48" alt={`图片: ${selectedImage?.name}`}
+                                             src={`${uploadServePath}/${selectedImage?.sha1}.webp`}/>
+                                        <div>
+                                            <p className="font-bold">{selectedImage?.name}</p>
+                                            <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>
+                                            <p className="secondary">{formatSize(selectedImage?.sizeKB ?? 0)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <p className="font-bold secondary">解释性文字</p>
+                                <p className="mb-3">{selectedImage?.altText}</p>
+
+                                <Button pill disabled={loading} color="red" onClick={async () => {
+                                    if (deleteConfirm && selectedImage != null) {
+                                        setLoading(true)
+                                        await deleteImage(selectedImage.id)
+                                        setLoading(false)
+                                        setSelectedImage(null)
+                                        setPage(await getImages(currentPage))
+                                    } else {
+                                        setDeleteConfirm(true)
+                                    }
+                                }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
+                            </If>
+                        </div>
+                    </If>
+                </TabItem>
+                <TabItem title="上传" icon={HiArrowUpTray}>
+                    <div className="flex flex-col justify-center items-center">
+                        <UploadAreaClient uploadPrefix={uploadServePath} onDone={hash => {
+                            setImageHash(hash)
+                            setImageName('')
+                            setImageAlt('')
+                            setShowUploadForm(true)
+                        }}/>
+                    </div>
+                </TabItem>
+            </Tabs>
+        </div>
+    </>
+}
