@@ -9,16 +9,17 @@ import {
     ModalHeader,
     Pagination,
     TabItem,
-    Tabs, TabsRef,
+    Tabs,
+    TabsRef,
     TextInput
 } from 'flowbite-react'
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import Paginated from '@/app/lib/Paginated'
 import { Image } from '@prisma/client'
-import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/media/media-actions'
+import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
-import UploadAreaClient from '@/app/media/upload/UploadAreaClient'
+import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
 
 function formatSize(kb: number): string {
     if (kb < 1024) {
@@ -57,7 +58,7 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
             <ModalHeader/>
             <ModalBody>
                 <div className="space-y-6">
-                    <h3 className="text-xl">设置图片信息</h3>
+                    <h3 className="text-xl font-bold">设置图片信息</h3>
                     <div>
                         <div className="mb-2 block">
                             <Label htmlFor="name">名称</Label>
@@ -68,14 +69,14 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                     </div>
                     <div>
                         <div className="mb-2 block">
-                            <Label htmlFor="alt">解释文字 (由屏幕阅读器读出)</Label>
+                            <Label htmlFor="alt">解释文字</Label>
                         </div>
-                        <TextInput id="alt" value={imageAlt}
+                        <TextInput id="alt" value={imageAlt} placeholder="由屏幕阅读器读出"
                                    onChange={e => setImageAlt(e.currentTarget.value)}
                                    required/>
                     </div>
 
-                    <img width={500} height={200} src={uploadServePath + imageHash + '.webp'} alt="已上传文件"
+                    <img width={500} height={200} src={uploadServePath + '/' + imageHash + '.webp'} alt="已上传文件"
                          className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
                 </div>
             </ModalBody>
@@ -109,7 +110,7 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                     </If>
                     <If condition={page.pages > 0}>
                         <div className="flex gap-4">
-                            <div>
+                            <div className="w-2/3">
                                 <div className="grid grid-cols-6 gap-4 mb-3">
                                     {page.items.map(image =>
                                         <button key={image.sha1} className={`w-full h-full rounded
@@ -132,46 +133,52 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                                             totalPages={page.pages}/>
                             </div>
 
-                            <If condition={selectedImage != null}>
-                                <div>
-                                    <p className="font-bold secondary">图片详情</p>
-                                    <div className="flex gap-3 mb-3 items-center">
-                                        <img className="h-48" alt={`图片: ${selectedImage?.name}`}
-                                             src={`${uploadServePath}/${selectedImage?.sha1}.webp`}/>
-                                        <div>
-                                            <p className="font-bold">{selectedImage?.name}</p>
-                                            <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>
-                                            <p className="secondary">{formatSize(selectedImage?.sizeKB ?? 0)}</p>
+                            <div className="w-1/3">
+                                <If condition={selectedImage != null}>
+                                    <div>
+                                        <p className="font-bold mb-3 text-xl secondary">图片详情</p>
+                                        <div className="flex gap-3 mb-3 items-center">
+                                            <img className="h-24" alt={`图片: ${selectedImage?.name}`}
+                                                 src={`${uploadServePath}/${selectedImage?.sha1}.webp`}/>
+                                            <div>
+                                                <p className="font-bold">{selectedImage?.name}</p>
+                                                <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>
+                                                <p className="secondary">{formatSize(selectedImage?.sizeKB ?? 0)}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                <p className="font-bold secondary">解释性文字</p>
-                                <p className="mb-3">{selectedImage?.altText}</p>
+                                    <p className="font-bold secondary">解释性文字</p>
+                                    <p className="mb-3">{selectedImage?.altText}</p>
 
-                                <Button pill disabled={loading} color="red" onClick={async () => {
-                                    if (deleteConfirm && selectedImage != null) {
-                                        setLoading(true)
-                                        await deleteImage(selectedImage.id)
-                                        setLoading(false)
-                                        setSelectedImage(null)
-                                        setPage(await getImages(currentPage))
-                                    } else {
-                                        setDeleteConfirm(true)
-                                    }
-                                }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
-                            </If>
+                                    <Button pill disabled={loading} color="red" onClick={async () => {
+                                        if (deleteConfirm && selectedImage != null) {
+                                            setLoading(true)
+                                            await deleteImage(selectedImage.id)
+                                            setLoading(false)
+                                            setSelectedImage(null)
+                                            setPage(await getImages(currentPage))
+                                        } else {
+                                            setDeleteConfirm(true)
+                                        }
+                                    }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
+                                </If>
+                            </div>
                         </div>
                     </If>
                 </TabItem>
                 <TabItem title="上传" icon={HiArrowUpTray}>
                     <div className="flex flex-col justify-center items-center">
-                        <UploadAreaClient uploadPrefix={uploadServePath} onDone={hash => {
-                            setImageHash(hash)
-                            setImageName('')
-                            setImageAlt('')
-                            setShowUploadForm(true)
-                        }}/>
+                        <div className="mb-3">
+                            <UploadAreaClient uploadPrefix={uploadServePath} onDone={hash => {
+                                setImageHash(hash)
+                                setImageName('')
+                                setImageAlt('')
+                                setShowUploadForm(true)
+                            }}/>
+                        </div>
+
+                        <p>上传超过 1 MB 的图片会严重降低访问速度。</p>
                     </div>
                 </TabItem>
             </Tabs>

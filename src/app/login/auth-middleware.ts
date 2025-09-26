@@ -8,7 +8,7 @@ const protectedRoutes = [
 ]
 
 const protectedRoutesPartial = [
-    '/'
+    '/studio'
 ]
 
 export default async function authMiddleware(req: NextRequest): Promise<NextResponse | null> {

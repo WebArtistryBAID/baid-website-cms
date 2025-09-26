@@ -24,7 +24,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
         formData.append('file', file)
 
         const xhr = new XMLHttpRequest() // Using this makes me feel ancient
-        xhr.open('POST', '/media/upload', true)
+        xhr.open('POST', '/studio/media/upload', true)
         xhr.upload.onprogress = (e: ProgressEvent) => {
             if (e.lengthComputable) {
                 setProgress(Math.round((e.loaded / e.total) * 100))
@@ -57,9 +57,10 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                     }
                 }}
                 className="bg-blue-50 hover:bg-blue-100
-        rounded-3xl flex flex-col justify-center items-center text-center p-5
+        rounded-3xl flex flex-col justify-center items-center text-center p-5 min-w-96
         transition-colors duration-100">
-        <input type="file" disabled={loading} className="hidden" ref={inputRef} onChange={e => {
+        <input type="file" disabled={loading} accept="image/*"
+               className="hidden" ref={inputRef} onChange={e => {
             if (e.currentTarget.files != null && e.currentTarget.files.length > 0) {
                 void upload(e.currentTarget.files[0])
             }
@@ -79,7 +80,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                     上传完毕
                 </If>
                 <If condition={!error && !done}>
-                    拖拽文件或点击此处上传
+                    拖拽图片或点击此处上传
                 </If>
             </If>
         </button>
