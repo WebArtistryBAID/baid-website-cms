@@ -71,7 +71,7 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                         <div className="mb-2 block">
                             <Label htmlFor="alt">解释文字</Label>
                         </div>
-                        <TextInput id="alt" value={imageAlt} placeholder="由屏幕阅读器读出"
+                        <TextInput id="alt" value={imageAlt} placeholder="简单说明图片内容，由屏幕阅读器读出..."
                                    onChange={e => setImageAlt(e.currentTarget.value)}
                                    required/>
                     </div>
@@ -138,8 +138,10 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                                     <div>
                                         <p className="font-bold mb-3 text-xl secondary">图片详情</p>
                                         <div className="flex gap-3 mb-3 items-center">
-                                            <img className="h-24" alt={`图片: ${selectedImage?.name}`}
-                                                 src={`${uploadServePath}/${selectedImage?.sha1}.webp`}/>
+                                            <a target="_blank" href={`${uploadServePath}/${selectedImage?.sha1}.webp`}>
+                                                <img className="h-24" alt={`图片: ${selectedImage?.name}`}
+                                                     src={`${uploadServePath}/${selectedImage?.sha1}.webp`}/>
+                                            </a>
                                             <div>
                                                 <p className="font-bold">{selectedImage?.name}</p>
                                                 <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>
