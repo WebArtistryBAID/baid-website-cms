@@ -69,12 +69,11 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
         <p className="text-xl font-bold" aria-hidden>上传</p>
         <button aria-live="polite" disabled={loading} className="text-sm" onClick={() => inputRef.current?.click()}>
             <If condition={loading}>
-                <span className="sr-only">上传进度</span>
-                {progress}%
+                上传进度: {progress}%
             </If>
             <If condition={!loading}>
                 <If condition={error}>
-                    上传错误
+                    上传时发生了错误
                 </If>
                 <If condition={done}>
                     上传完毕
@@ -85,7 +84,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
             </If>
         </button>
         <If condition={done}>
-            <img width={500} height={200} src={uploadPrefix + path} alt="已上传文件"
+            <img width={500} height={200} src={uploadPrefix + '/' + path} alt="已上传文件"
                  className="mt-3 rounded-xl w-full lg:max-w-sm object-cover"/>
         </If>
     </div>
