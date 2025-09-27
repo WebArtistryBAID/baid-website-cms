@@ -19,10 +19,10 @@ export async function POST(req: NextRequest): Promise<Response> {
     const formData = await req.formData()
     const file = formData.get('file') as File | null
     if (file == null) {
-        return NextResponse.error()
+        return NextResponse.json({ error: 'no-file' })
     }
     if (!file.type.includes('image/')) {
-        return NextResponse.error()
+        return NextResponse.json({ error: 'not-image' })
     }
 
     const fileBuffer = Buffer.from(await file.arrayBuffer())
@@ -33,6 +33,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     }).webp().toBuffer()
     const hash = crypto.createHash('sha1').update(webpBuffer).digest('hex')
     const outputPath = getPath(hash + '.webp')
+    try {
+        await fs.stat(outputPath)
+        return NextResponse.json({ error: 'duplicate' })
+    } catch {
+    }
 
     await fs.writeFile(outputPath, webpBuffer)
     await fs.writeFile(getPath(hash + '_thumb.webp'), thumbnailBuffer)

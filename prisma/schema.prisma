@@ -60,6 +60,8 @@ enum UserAuditLogType {
 
   unpublishPost
   unpublishPage
+  deletePost
+  deletePage
 
   uploadImage
   deleteImage
@@ -92,19 +94,23 @@ model Page {
 }
 
 model Post {
-  id                 Int      @id @default(autoincrement())
-  title              String
-  slug               String   @unique
+  id           Int       @id @default(autoincrement())
+  titleEN      String
+  titleZH      String
+  slug         String    @unique
   contentPublishedEN String? // Markdown
   contentPublishedZH String? // Markdown
   contentDraftEN     String // Markdown
   contentDraftZH     String // Markdown
   editorsApproved    Int[] // Array of user IDs
   adminsApproved     Int[] // Array of user IDs
+  lockedAt     DateTime?
+  coverImage   Image?    @relation(fields: [coverImageId], references: [id], onDelete: SetNull)
+  coverImageId Int?
   creatorId          Int
-  creator            User     @relation(fields: [creatorId], references: [id])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  creator      User      @relation(fields: [creatorId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 }
 
 model Image {
@@ -118,4 +124,6 @@ model Image {
   uploader   User?    @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   uploaderId Int?
   createdAt  DateTime @default(now())
+
+  linkedPosts Post[]
 }

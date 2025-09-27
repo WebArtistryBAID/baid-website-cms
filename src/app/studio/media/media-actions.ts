@@ -78,7 +78,7 @@ export async function createImage(data: {
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.deleteImage,
+            type: UserAuditLogType.uploadImage,
             userId: user.id,
             values: [image.id.toString(), data.sha1]
         }

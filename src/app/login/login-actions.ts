@@ -19,7 +19,7 @@ export async function requireUser(): Promise<User> {
     return user
 }
 
-export async function requireUserRole(role: Role): Promise<User> {
+export async function requireUserWithRole(role: Role): Promise<User> {
     const user = await requireUser()
     if (!user.roles.includes(role)) {
         throw new Error('Unauthorized')
@@ -34,14 +34,14 @@ export async function getMyUser(): Promise<User | null> {
 }
 
 export async function getUser(id: number): Promise<User | null> {
-    await requireUserRole(Role.admin)
+    await requireUserWithRole(Role.admin)
     return prisma.user.findUnique({
         where: { id }
     })
 }
 
 export async function getUsers(page: number, keyword: string): Promise<Paginated<User>> {
-    await requireUserRole(Role.admin)
+    await requireUserWithRole(Role.admin)
     const pages = Math.ceil(await prisma.user.count({
         where: {
             OR: [

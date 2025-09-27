@@ -30,6 +30,7 @@ To run in development:
 | `ONELOGIN_HOST`          | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes. |
 | `ONELOGIN_CLIENT_ID`     | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                            |
 | `ONELOGIN_CLIENT_SECRET` | OneLogin client secret.                                                                                         |
+| `DEEPSEEK_API_KEY`       | Used for sanitizing articles automatically.                                                                     |
 
 ## Contribution
 

@@ -11,14 +11,14 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
     const inputRef = useRef<HTMLInputElement>(null)
     const [ loading, setLoading ] = useState(false)
     const [ progress, setProgress ] = useState(0)
-    const [ error, setError ] = useState(false)
+    const [ error, setError ] = useState('')
     const [ done, setDone ] = useState(false)
     const [ path, setPath ] = useState('')
 
     async function upload(file: File) {
         setLoading(true)
         setDone(false)
-        setError(false)
+        setError('')
         setProgress(0)
         const formData = new FormData()
         formData.append('file', file)
@@ -33,16 +33,17 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
         xhr.onload = () => {
             setLoading(false)
             setProgress(0)
-            if (xhr.status === 200) {
+            const json = JSON.parse(xhr.responseText)
+            if ('hash' in json) {
                 setDone(true)
                 setPath(JSON.parse(xhr.responseText).hash + '.webp')
                 onDone(JSON.parse(xhr.responseText).hash)
             } else {
-                setError(true)
+                setError(json.error)
             }
         }
         xhr.onerror = () => {
-            setError(true)
+            setError('network')
         }
         xhr.send(formData)
     }
@@ -72,8 +73,13 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                 上传进度: {progress}%
             </If>
             <If condition={!loading}>
-                <If condition={error}>
-                    上传时发生了错误
+                <If condition={error != ''}>
+                    {{
+                        network: '网络错误，请稍后再试',
+                        'no-file': '未检测到文件，请重试',
+                        'not-image': '仅支持图片格式的文件',
+                        duplicate: '该图片已存在，无需重复上传'
+                    }[error]}
                 </If>
                 <If condition={done}>
                     上传完毕
