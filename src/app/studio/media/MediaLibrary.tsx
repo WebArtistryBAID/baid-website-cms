@@ -15,11 +15,11 @@ import {
 } from 'flowbite-react'
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
-import Paginated from '@/app/lib/Paginated'
 import { Image } from '@prisma/client'
 import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
+import { Paginated } from '@/app/lib/data-types'
 
 function formatSize(kb: number): string {
     if (kb < 1024) {
@@ -29,7 +29,11 @@ function formatSize(kb: number): string {
     }
 }
 
-export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
+export default function MediaLibrary({ init, pickMode, onPick }: {
+    init: Paginated<Image>,
+    pickMode?: boolean,
+    onPick?: (image: Image) => void
+}) {
     const [ page, setPage ] = useState<Paginated<Image>>(init)
     const [ loading, setLoading ] = useState(false)
     const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
@@ -82,6 +86,7 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
             </ModalBody>
             <ModalFooter>
                 <Button pill color="blue" disabled={loading} onClick={async () => {
+                    if (!imageName || !imageAlt) return
                     setLoading(true)
                     setSelectedImage(await createImage({
                         name: imageName,
@@ -105,7 +110,9 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                 <TabItem active title="图片" icon={HiPhoto}>
                     <If condition={page.pages < 1}>
                         <div className="flex flex-col justify-center items-center">
-                            <p>暂时没有上传图片。</p>
+                            <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
+                            <p className="mb-3">暂时没有图片。</p>
+                            <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
                         </div>
                     </If>
                     <If condition={page.pages > 0}>
@@ -150,9 +157,16 @@ export default function MediaLibrary({ init }: { init: Paginated<Image> }) {
                                         </div>
                                     </div>
 
-                                    <p className="font-bold secondary">解释性文字</p>
+                                    <p className="font-bold secondary text-sm">解释性文字</p>
                                     <p className="mb-3">{selectedImage?.altText}</p>
 
+                                    <If condition={pickMode}>
+                                        <Button pill disabled={loading} color="blue" className="mb-3" onClick={() => {
+                                            if (onPick != null) {
+                                                onPick(selectedImage!)
+                                            }
+                                        }}>选取</Button>
+                                    </If>
                                     <Button pill disabled={loading} color="red" onClick={async () => {
                                         if (deleteConfirm && selectedImage != null) {
                                             setLoading(true)

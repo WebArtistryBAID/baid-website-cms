@@ -2,7 +2,7 @@
 
 import { PrismaClient, Role, User } from '@prisma/client'
 import { me } from '@/app/login/login'
-import Paginated from '@/app/lib/Paginated'
+import { Paginated, SIMPLIFIED_USER_SELECT, SimplifiedUser } from '@/app/lib/data-types'
 
 const prisma = new PrismaClient()
 
@@ -30,6 +30,14 @@ export async function requireUserWithRole(role: Role): Promise<User> {
 export async function getMyUser(): Promise<User | null> {
     return prisma.user.findUnique({
         where: { id: await me() ?? -1 }
+    })
+}
+
+export async function getSimplifiedUser(id: number): Promise<SimplifiedUser | null> {
+    await requireUser()
+    return prisma.user.findUnique({
+        where: { id },
+        select: SIMPLIFIED_USER_SELECT
     })
 }
 

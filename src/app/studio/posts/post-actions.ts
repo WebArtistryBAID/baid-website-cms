@@ -1,23 +1,29 @@
 'use server'
 
-import Paginated from '@/app/lib/Paginated'
 import { Post, PrismaClient, Role, User, UserAuditLogType } from '@prisma/client'
-import { SIMPLIFIED_POST_SELECT, SimplifiedPost } from '@/app/lib/data-types'
+import {
+    HYDRATED_POST_SELECT,
+    HydratedPost,
+    MINIMUM_ADMIN_APPROVALS,
+    MINIMUM_EDITOR_APPROVALS,
+    Paginated,
+    SIMPLIFIED_POST_SELECT,
+    SimplifiedPost
+} from '@/app/lib/data-types'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import fs from 'fs/promises'
 import path from 'path'
 import { spawn } from 'child_process'
 import sharp from 'sharp'
 import crypto from 'crypto'
+import { AlignPostResponse, WeChatWorkerStatus } from '@/app/studio/posts/post-types'
 
 const PAGE_SIZE = 24
-const MINIMUM_EDITOR_APPROVALS = 2
-const MINIMUM_ADMIN_APPROVALS = 1
 
 const prisma = new PrismaClient()
 
 export async function getPosts(page: number): Promise<Paginated<SimplifiedPost>> {
-    const pages = Math.ceil(await prisma.image.count() / PAGE_SIZE)
+    const pages = Math.ceil(await prisma.post.count() / PAGE_SIZE)
     const posts = await prisma.post.findMany({
         orderBy: { createdAt: 'desc' },
         skip: page * PAGE_SIZE,
@@ -31,9 +37,10 @@ export async function getPosts(page: number): Promise<Paginated<SimplifiedPost>>
     }
 }
 
-export async function getPost(id: number): Promise<Post | null> {
+export async function getPost(id: number): Promise<HydratedPost | null> {
     return prisma.post.findUnique({
-        where: { id }
+        where: { id },
+        select: HYDRATED_POST_SELECT
     })
 }
 
@@ -58,13 +65,6 @@ export async function unpublishPost(id: number): Promise<void> {
             values: [ post.id.toString(), post.titleEN ]
         }
     })
-}
-
-export enum AlignPostResponse {
-    success,
-    editorApprovalsNotEnough,
-    adminApprovalsNotEnough,
-    notFound
 }
 
 // Align draft content with published content (in effect, publishing or overriding existing publish)
@@ -166,7 +166,7 @@ export async function deletePost(id: number): Promise<void> {
 // = LOCKING
 // A post must be locked when it is being edited to prevent conflict.
 // A lock is defined by its timestamp. Another user can choose to override the lock, which kicks out the previous editor
-// Locks must be renewed every 15 minutes
+// Locks must be renewed every minute
 export async function lockPost(id: number, currentLock: Date | null): Promise<Date | null> {
     // If currentLock === post.lockedAt, allow renewal; otherwise, only allow if isPostLocked() === false
     await requireUserWithRole(Role.writer)
@@ -178,7 +178,7 @@ export async function lockPost(id: number, currentLock: Date | null): Promise<Da
         if (currentLock == null) {
             return null
         }
-        if (post.lockedAt.getTime() !== currentLock.getTime() && new Date().getTime() - post.lockedAt.getTime() <= 15 * 60 * 1000) {
+        if (post.lockedAt.getTime() !== currentLock.getTime() && new Date().getTime() - post.lockedAt.getTime() <= 1.5 * 60 * 1000) {
             return null
         }
     }
@@ -205,10 +205,12 @@ export async function overrideAndLockPost(id: number): Promise<Date | null> {
             lockedAt: newLock
         }
     })
+    console.log('lock')
     return newLock
 }
 
 export async function unlockPost(id: number, lock: Date): Promise<void> {
+    console.log('unlock')
     await requireUserWithRole(Role.writer)
     const post = await prisma.post.findUnique({ where: { id } })
     if (post == null) {
@@ -237,7 +239,7 @@ export async function isPostLocked(id: number): Promise<boolean> {
     if (post.lockedAt == null) {
         return false
     }
-    return new Date().getTime() - post.lockedAt.getTime() <= 15 * 60 * 1000
+    return new Date().getTime() - post.lockedAt.getTime() <= 1.5 * 60 * 1000
 }
 
 // Check if the current content lock has been replaced by another user
@@ -253,7 +255,7 @@ export async function isLockAlive(id: number, lock: Date): Promise<boolean> {
     if (post.lockedAt.getTime() !== lock.getTime()) {
         return false
     }
-    return new Date().getTime() - post.lockedAt.getTime() <= 15 * 60 * 1000
+    return new Date().getTime() - post.lockedAt.getTime() <= 1.5 * 60 * 1000
 }
 
 // = CREATING AND EDITING
@@ -335,19 +337,9 @@ export async function updatePostSubstantially(data: {
 }
 
 // = WeChat crawling
-export enum WeChatWorkerStatus {
-    idle,
-    download,
-    imageClassification,
-    sanitization,
-    translation,
-    savingImages,
-    creatingPost
-}
-
 let wechatWorkerRunning = WeChatWorkerStatus.idle
 
-function runCommand(
+async function runCommand(
     command: string,
     args: string[],
     cwd?: string,
@@ -544,6 +536,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
 
         // STEP 5: Create post for review
         // TODO Image format not decided - need to replace in content
+        wechatWorkerRunning = WeChatWorkerStatus.creatingPost
         await prisma.post.update({
             where: {
                 id: post.id

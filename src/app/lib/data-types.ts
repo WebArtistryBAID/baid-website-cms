@@ -1,5 +1,14 @@
 import { Gender, Image, Role, UserType } from '@prisma/client'
 
+export const MINIMUM_EDITOR_APPROVALS = 1
+export const MINIMUM_ADMIN_APPROVALS = 1
+
+export interface Paginated<T> {
+    items: T[]
+    page: number
+    pages: number
+}
+
 export interface SimplifiedUser {
     id: number
     name: string
@@ -48,4 +57,42 @@ export const SIMPLIFIED_POST_SELECT = {
     },
     createdAt: true,
     updatedAt: true
+}
+
+export interface HydratedPost {
+    id: number
+    titleEN: string
+    titleZH: string
+    slug: string
+    coverImage: Image | null
+    editorsApproved: number[]
+    adminsApproved: number[]
+    creator: SimplifiedUser
+    createdAt: Date
+    updatedAt: Date
+    lockedAt: Date | null
+    contentDraftEN: string
+    contentDraftZH: string
+    contentPublishedEN: string | null
+    contentPublishedZH: string | null
+}
+
+export const HYDRATED_POST_SELECT = {
+    id: true,
+    titleEN: true,
+    titleZH: true,
+    slug: true,
+    contentDraftEN: true,
+    contentDraftZH: true,
+    contentPublishedEN: true,
+    contentPublishedZH: true,
+    coverImage: true,
+    editorsApproved: true,
+    adminsApproved: true,
+    creator: {
+        select: SIMPLIFIED_USER_SELECT
+    },
+    createdAt: true,
+    updatedAt: true,
+    lockedAt: true
 }

@@ -1,0 +1,16 @@
+export enum WeChatWorkerStatus {
+    idle,
+    download,
+    imageClassification,
+    sanitization,
+    translation,
+    savingImages,
+    creatingPost
+}
+
+export enum AlignPostResponse {
+    success,
+    editorApprovalsNotEnough,
+    adminApprovalsNotEnough,
+    notFound
+}

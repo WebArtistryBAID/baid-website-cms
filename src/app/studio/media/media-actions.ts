@@ -1,11 +1,11 @@
 'use server'
 
 import { Image, PrismaClient, UserAuditLogType } from '@prisma/client'
-import Paginated from '@/app/lib/Paginated'
 import { requireUser } from '@/app/login/login-actions'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import sharp from 'sharp'
+import { Paginated } from '@/app/lib/data-types'
 
 const PAGE_SIZE = 24
 const prisma = new PrismaClient()

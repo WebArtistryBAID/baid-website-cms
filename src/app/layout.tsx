@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { ReactNode } from 'react'
 import NextTopLoader from 'nextjs-toploader'
+import { ThemeInit } from '../../.flowbite-react/init'
 
 export const metadata: Metadata = {
     title: 'Helium',
@@ -11,8 +12,7 @@ export const metadata: Metadata = {
 export default async function RootLayout({ children }: { children: ReactNode }) {
     return (
         <html lang="en" suppressHydrationWarning>
-        <head>
-        </head>
+        <head><ThemeInit/></head>
         <body className="antialiased">
         <NextTopLoader showSpinner={false}/>
         {children}
