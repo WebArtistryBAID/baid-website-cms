@@ -52,5 +52,5 @@ article a {
 }
 
 article img {
-    @apply rounded-lg text-center max-w-96 mx-auto;
+    @apply rounded-lg text-center max-w-96 mx-auto mb-3;
 }
