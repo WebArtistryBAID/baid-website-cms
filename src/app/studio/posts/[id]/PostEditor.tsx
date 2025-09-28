@@ -25,7 +25,7 @@ import {
     Paginated,
     SimplifiedUser
 } from '@/app/lib/data-types'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Image, Role, User } from '@prisma/client'
 import { getMyUser } from '@/app/login/login-actions'
 import { useRouter } from 'next/navigation'
@@ -68,16 +68,13 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     const [ inEnglish, setInEnglish ] = useState(false)
     const router = useRouter()
 
-    console.log('initial lock', lock)
-
     useEffect(() => {
         (async () => {
             setUser((await getMyUser())!)
         })()
     }, [])
 
-    // Discover images and cache
-
+    // = MEDIA LIBRARY PARSING
     // Parse [IMAGE: ID] placeholders, fetch/cached images, and update preview
     const extractImageIds = (md: string): number[] => {
         const ids = new Set<number>()
@@ -126,32 +123,35 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     }, [ markdownContent ])
 
 
-    // Check locking
+    // = LOCKING
+    const lockRef = useRef<Date>(currentLock)
     useEffect(() => {
-        const id = setInterval(async () => {
-            if (!(await isLockAlive(post.id, currentLock))) {
+        lockRef.current = currentLock
+    }, [ currentLock ])
+
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            const alive = await isLockAlive(post.id, lockRef.current)
+            if (!alive) {
                 setShowLockBroken(true)
-                clearInterval(id)
+                clearInterval(interval)
             }
         }, 10000)
+        return () => clearInterval(interval)
+    }, [ post.id ])
 
-        return () => clearInterval(id)
-    }, [ currentLock, post.id ])
-
-    // Refresh lock
     useEffect(() => {
-        const id = setInterval(async () => {
-            const newLock = await lockPost(post.id, currentLock)
+        const interval = setInterval(async () => {
+            const newLock = await lockPost(post.id, lockRef.current)
             if (newLock == null) {
                 setShowLockBroken(true)
-                clearInterval(id)
+                clearInterval(interval)
                 return
             }
-            console.log('refreshed lock', newLock)
             setCurrentLock(newLock)
-        }, 60000)
-        return () => clearInterval(id)
-    })
+        }, 55000)
+        return () => clearInterval(interval)
+    }, [ post.id ])
 
     // Unlock before leaving
     useEffect(() => {
@@ -181,7 +181,8 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
         }
     }, []) // THIS is not supposed to contain anything
 
-    // Get media library data
+
+    // = Get media library data
     useEffect(() => {
         (async () => {
             setMediaLibraryContent(await getImages(0))

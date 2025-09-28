@@ -105,6 +105,7 @@ model Post {
   editorsApproved    Int[] // Array of user IDs
   adminsApproved     Int[] // Array of user IDs
   lockedAt     DateTime?
+  lockedBy     Int?
   coverImage   Image?    @relation(fields: [coverImageId], references: [id], onDelete: SetNull)
   coverImageId Int?
   creatorId          Int

@@ -168,94 +168,86 @@ export async function deletePost(id: number): Promise<void> {
 // A lock is defined by its timestamp. Another user can choose to override the lock, which kicks out the previous editor
 // Locks must be renewed every minute
 export async function lockPost(id: number, currentLock: Date | null): Promise<Date | null> {
-    // If currentLock === post.lockedAt, allow renewal; otherwise, only allow if isPostLocked() === false
-    await requireUserWithRole(Role.writer)
+    const user = await requireUserWithRole(Role.writer) // assume returns user
     const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return null
+    if (!post) return null
+
+    const now = new Date()
+    const FRESH_MS = 90_000 // 1.5 minutes
+    const isFresh = post.lockedAt && (now.getTime() - post.lockedAt.getTime() <= FRESH_MS)
+
+    // No existing lock or expired -> take lock
+    if (!post.lockedAt || !isFresh) {
+        const newLock = new Date()
+        await prisma.post.update({
+            where: { id },
+            data: { lockedAt: newLock, lockedBy: user.id }
+        })
+        return newLock
     }
-    if (post.lockedAt != null) {
-        if (currentLock == null) {
-            return null
-        }
-        if (post.lockedAt.getTime() !== currentLock.getTime() && new Date().getTime() - post.lockedAt.getTime() <= 1.5 * 60 * 1000) {
-            return null
-        }
+
+    // Existing fresh lock
+    // Renewal path: only if timestamp matches and owned by same user
+    if (currentLock && post.lockedAt.getTime() === currentLock.getTime() && post.lockedBy === user.id) {
+        const newLock = new Date()
+        await prisma.post.update({
+            where: { id },
+            data: { lockedAt: newLock, lockedBy: user.id }
+        })
+        return newLock
     }
-    const newLock = new Date()
-    await prisma.post.update({
-        where: { id },
-        data: {
-            lockedAt: newLock
-        }
-    })
-    return newLock
+
+    // Someone else holds a fresh lock -> deny
+    return null
 }
 
 export async function overrideAndLockPost(id: number): Promise<Date | null> {
-    await requireUserWithRole(Role.writer)
+    const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return null
-    }
+    if (!post) return null
+
     const newLock = new Date()
     await prisma.post.update({
         where: { id },
-        data: {
-            lockedAt: newLock
-        }
+        data: { lockedAt: newLock, lockedBy: user.id }
     })
-    console.log('lock')
     return newLock
 }
 
 export async function unlockPost(id: number, lock: Date): Promise<void> {
-    console.log('unlock')
-    await requireUserWithRole(Role.writer)
+    const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return
-    }
-    if (post.lockedAt == null) {
-        return
-    }
-    if (post.lockedAt.getTime() !== lock.getTime()) {
-        return
-    }
+    if (!post || !post.lockedAt) return
+    if (post.lockedBy !== user.id) return
+    const SKEW_MS = 15_000
+    const delta = Math.abs(post.lockedAt.getTime() - lock.getTime())
+    if (delta > SKEW_MS) return
+
     await prisma.post.update({
         where: { id },
-        data: {
-            lockedAt: null
-        }
+        data: { lockedAt: null, lockedBy: null }
     })
 }
 
 export async function isPostLocked(id: number): Promise<boolean> {
     await requireUserWithRole(Role.writer)
     const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return false
-    }
-    if (post.lockedAt == null) {
-        return false
-    }
-    return new Date().getTime() - post.lockedAt.getTime() <= 1.5 * 60 * 1000
+    if (!post || !post.lockedAt || !post.lockedBy) return false
+    return new Date().getTime() - post.lockedAt.getTime() <= 90_000
 }
 
-// Check if the current content lock has been replaced by another user
 export async function isLockAlive(id: number, lock: Date): Promise<boolean> {
-    await requireUserWithRole(Role.writer)
+    const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return false
-    }
-    if (post.lockedAt == null) {
-        return false
-    }
-    if (post.lockedAt.getTime() !== lock.getTime()) {
-        return false
-    }
-    return new Date().getTime() - post.lockedAt.getTime() <= 1.5 * 60 * 1000
+    if (!post || !post.lockedAt || !post.lockedBy) return false
+
+    const fresh = new Date().getTime() - post.lockedAt.getTime() <= 90_000
+    if (!fresh) return false
+
+    // If it's your lock and still fresh, it's alive, regardless of renewal advancing the timestamp.
+    if (post.lockedBy === user.id) return true
+    // Otherwise, it's someone else's fresh lock -> not alive for you.
+    return false
 }
 
 // = CREATING AND EDITING

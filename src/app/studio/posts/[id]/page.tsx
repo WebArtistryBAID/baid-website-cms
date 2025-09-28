@@ -18,7 +18,13 @@ export default async function StudioPostPage({ params, searchParams }: {
         if (await isPostLocked(post.id)) {
             return <PostLockInfo post={post}/>
         }
-        lock = (await lockPost(post.id, null))!
+        {
+            const newLock = await lockPost(post.id, null)
+            if (newLock == null) {
+                return <PostLockInfo post={post}/>
+            }
+            lock = newLock
+        }
     }
 
     const map = new Map<number, SimplifiedUser>()
