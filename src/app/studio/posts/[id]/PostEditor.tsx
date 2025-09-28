@@ -368,7 +368,10 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                 setPost({
                     ...post,
                     coverImage: image
-                })
+                });
+                (async () => {
+                    setMediaLibraryContent(await getImages(0))
+                })()
             }}/>
         </Modal>
 
