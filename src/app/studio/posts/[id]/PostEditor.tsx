@@ -35,7 +35,7 @@ import {
     adminApprovePost,
     alignPost,
     deletePost,
-    editorApprovePost,
+    editorApprovePost, getPost,
     isLockAlive,
     lockPost,
     unlockPost,
@@ -252,6 +252,14 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
         })
         setPost(newPost)
         setPreviousPost(newPost)
+        setLoading(false)
+    }
+
+    async function refreshPost() {
+        setLoading(true)
+        const newPost = await getPost(post.id)
+        setPost(newPost!)
+        setPreviousPost(newPost!)
         setLoading(false)
     }
 
@@ -484,6 +492,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                                     setLoading(true)
                                     await unpublishPost(post.id)
                                     setLoading(false)
+                                    await refreshPost()
                                     router.refresh()
                                 }}>
                                     {unpublishConfirm ? '确认撤回?' : '撤回发布'}
@@ -559,6 +568,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                                         setLoading(true)
                                         await editorApprovePost(post.id)
                                         setLoading(false)
+                                        await refreshPost()
                                         router.refresh()
                                     }}>{approvalConfirm ? '确认批准?' : '批准'}</Button>
                                 </If>
@@ -589,6 +599,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                                         setLoading(true)
                                         await adminApprovePost(post.id)
                                         setLoading(false)
+                                        await refreshPost()
                                         router.refresh()
                                     }}>{approvalConfirm2 ? '确认批准?' : '批准'}</Button>
                                 </If>
@@ -613,6 +624,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                                             setLoading(true)
                                             await alignPost(post.id)
                                             setLoading(false)
+                                            await refreshPost()
                                             router.refresh()
                                         }}>{publishConfirm ? '确认发布?' : '发布'}</Button>
                                     </If>
