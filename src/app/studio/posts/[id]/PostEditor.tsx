@@ -37,7 +37,7 @@ import {
     isLockAlive,
     lockPost,
     unlockPost,
-    unpublishPost
+    unpublishPost, updatePost
 } from '@/app/studio/posts/post-actions'
 import MediaLibrary from '@/app/studio/media/MediaLibrary'
 import { getImage, getImages } from '@/app/studio/media/media-actions'
@@ -53,6 +53,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     const [ user, setUser ] = useState<User | null>(null)
     const [ loading, setLoading ] = useState(false)
     const [ currentLock, setCurrentLock ] = useState(lock)
+    const [ previousPost, setPreviousPost ] = useState(initPost)
     const [ post, setPost ] = useState(initPost)
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
@@ -65,6 +66,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ markdownContent, setMarkdownContent ] = useState(post.contentDraftZH)
     const [ previewContent, setPreviewContent ] = useState('')
+    const [ hasChanges, setHasChanges ] = useState(false)
     const [ inEnglish, setInEnglish ] = useState(false)
     const router = useRouter()
 
@@ -189,9 +191,58 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
         })()
     }, [])
 
-    // TODO:
-    //  Actually loading content
-    //  Save and switch language
+
+    // = Switch language
+    function switchLanguage() {
+        if (inEnglish) {
+            setMarkdownContent(post.contentDraftZH)
+            setInEnglish(false)
+        } else {
+            setMarkdownContent(post.contentDraftEN)
+            setInEnglish(true)
+        }
+    }
+
+    // = Save
+    useEffect(() => {
+        setHasChanges(post.titleEN !== previousPost.titleEN || post.titleZH !== previousPost.titleZH ||
+            post.slug !== previousPost.slug ||
+            post.coverImage?.id !== previousPost.coverImage?.id ||
+            post.contentDraftEN !== previousPost.contentDraftEN ||
+            post.contentDraftZH !== previousPost.contentDraftZH ||
+            post.createdAt !== previousPost.createdAt)
+    }, [ post, previousPost ])
+
+    useEffect(() => {
+        if (inEnglish) {
+            setPost({
+                ...post,
+                contentDraftEN: markdownContent
+            })
+        } else {
+            setPost({
+                ...post,
+                contentDraftZH: markdownContent
+            })
+        }
+    }, [ markdownContent, inEnglish ])
+
+    async function saveChanges() {
+        setLoading(true)
+        const newPost = await updatePost({
+            id: post.id,
+            titleEN: post.titleEN,
+            titleZH: post.titleZH,
+            slug: post.slug,
+            contentDraftEN: post.contentDraftEN,
+            contentDraftZH: post.contentDraftZH,
+            coverImageId: post.coverImage?.id,
+            createdAt: post.createdAt
+        })
+        setPost(newPost)
+        setPreviousPost(newPost)
+        setLoading(false)
+    }
 
     return <>
         <Modal show={showMediaLibrary} size="5xl" onClose={() => setShowMediaLibrary(false)} className="relative">
@@ -228,8 +279,16 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                     </div>
                     <div className="w-1/3">
                         <div className="flex mb-3 gap-3">
-                            <Button pill color="blue" disabled={post === initPost}>保存更改</Button>
-                            <Button pill color="alternative">切换语言</Button>
+                            <Button pill color="blue" disabled={!hasChanges || loading}
+                                    onClick={saveChanges}>保存更改</Button>
+                            <Button pill color="alternative" disabled={hasChanges} onClick={switchLanguage}>
+                                <If condition={inEnglish}>
+                                    切换到中文
+                                </If>
+                                <If condition={!inEnglish}>
+                                    切换到英文
+                                </If>
+                            </Button>
                         </div>
 
                         <p className="font-bold text-xl">{post.titleZH}</p>

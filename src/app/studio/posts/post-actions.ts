@@ -277,38 +277,22 @@ export async function createPost(titleEN: string, titleZH: string): Promise<Post
     return post
 }
 
-export async function updatePostMetadata(data: {
+export async function updatePost(data: {
     id: number
     slug: string | undefined
     createdAt: Date | undefined
-}): Promise<Post> {
-    const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.update({
-        where: { id: data.id },
-        data: { slug: data.slug, createdAt: data.createdAt }
-    })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.writerEditPost,
-            userId: user.id,
-            values: [ data.id.toString(), post.titleEN ]
-        }
-    })
-    return post
-}
-
-export async function updatePostSubstantially(data: {
-    id: number
     titleEN: string | undefined
     titleZH: string | undefined
     contentDraftEN: string | undefined
     contentDraftZH: string | undefined
     coverImageId: number | null | undefined
-}): Promise<Post> {
+}): Promise<HydratedPost> {
     const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.update({
         where: { id: data.id },
         data: {
+            slug: data.slug,
+            createdAt: data.createdAt,
             titleEN: data.titleEN,
             titleZH: data.titleZH,
             contentDraftEN: data.contentDraftEN,
@@ -316,7 +300,8 @@ export async function updatePostSubstantially(data: {
             coverImageId: data.coverImageId,
             editorsApproved: [],
             adminsApproved: []
-        }
+        },
+        select: HYDRATED_POST_SELECT
     })
     await prisma.userAuditLog.create({
         data: {
