@@ -244,6 +244,34 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
         setLoading(false)
     }
 
+    // = Mod + S to save
+    const loadingRef = useRef(loading)
+    const hasChangesRef = useRef(hasChanges)
+    const saveRef = useRef(saveChanges)
+    useEffect(() => {
+        loadingRef.current = loading
+    }, [ loading ])
+    useEffect(() => {
+        hasChangesRef.current = hasChanges
+    }, [ hasChanges ])
+    useEffect(() => {
+        saveRef.current = saveChanges
+    }, [ saveChanges ])
+
+    useEffect(() => {
+        const onKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault()
+                // Only save when not loading and there are changes
+                if (!loadingRef.current && hasChangesRef.current) {
+                    void saveRef.current()
+                }
+            }
+        }
+        window.addEventListener('keydown', onKeyDown)
+        return () => window.removeEventListener('keydown', onKeyDown)
+    }, [])
+
     return <>
         <Modal show={showMediaLibrary} size="5xl" onClose={() => setShowMediaLibrary(false)} className="relative">
             <ModalHeader className="border-none absolute z-50 right-0"/>
@@ -364,6 +392,14 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                 </div>
             </TabItem>
             <TabItem title="预览" icon={HiSearch}>
+                <Button pill color="alternative" className="mb-3" disabled={hasChanges} onClick={switchLanguage}>
+                    <If condition={inEnglish}>
+                        切换到中文
+                    </If>
+                    <If condition={!inEnglish}>
+                        切换到英文
+                    </If>
+                </Button>
                 <article>
                     <Markdown>{previewContent}</Markdown>
                 </article>

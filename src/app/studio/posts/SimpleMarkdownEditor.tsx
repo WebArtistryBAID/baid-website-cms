@@ -124,7 +124,7 @@ export default function SimpleMarkdownEditor({
                 style={{ height: '30rem' }}
             />
             <div className="px-4 py-2 text-xs text-gray-500 flex">
-                <p className="flex-grow mr-auto">{value.length} 字符</p>
+                <p className="flex-grow mr-auto">{value.length} 字符 · Markdown</p>
                 {!readOnly && <button className="text-blue-600 hover:underline"
                                       onClick={() => setShowMediaLibrary(true)}>插入图片</button>}
             </div>
