@@ -2,13 +2,15 @@
 
 import If from '@/app/lib/If'
 import {
-    Button,
+    Button, Datepicker,
+    Label,
     Modal,
     ModalBody,
     ModalFooter,
     ModalHeader,
     TabItem,
     Tabs,
+    TextInput,
     Timeline,
     TimelineBody,
     TimelineContent,
@@ -37,7 +39,8 @@ import {
     isLockAlive,
     lockPost,
     unlockPost,
-    unpublishPost, updatePost
+    unpublishPost,
+    updatePost
 } from '@/app/studio/posts/post-actions'
 import MediaLibrary from '@/app/studio/media/MediaLibrary'
 import { getImage, getImages } from '@/app/studio/media/media-actions'
@@ -57,6 +60,9 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     const [ post, setPost ] = useState(initPost)
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
+    const [ showTitleForm, setShowTitleForm ] = useState(false)
+    const [ showSlugForm, setShowSlugForm ] = useState(false)
+    const [ showDateForm, setShowDateForm ] = useState(false)
     const [ mediaLibraryContent, setMediaLibraryContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
     const [ cachedImages, setCachedImages ] = useState<Map<number, Image>>(new Map())
     const [ publishConfirm, setPublishConfirm ] = useState(false)
@@ -87,6 +93,8 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
         }
         return Array.from(ids)
     }
+    // Helper to escape ] in alt text for markdown image syntax
+    const escapeAlt = (s: string) => (s ?? '').replace(/]/g, '\\]')
 
     useEffect(() => {
         (async () => {
@@ -117,7 +125,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                 const id = Number(idStr)
                 const image = working.get(id)
                 if (!image) return _m // leave placeholder if not yet loaded
-                const alt = image.altText ?? ''
+                const alt = escapeAlt(image.altText ?? '')
                 return `![${alt}](${uploadPrefix}/${image.sha1}.webp)`
             })
             setPreviewContent(replaced)
@@ -157,13 +165,18 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
 
     // Unlock before leaving
     useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            console.log('source 2')
+        // Only attach unload handlers in production to avoid StrictMode double-invocation noise during development
+        if (process.env.NODE_ENV !== 'production') return
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const handleBeforeUnload = (e: any) => {
             navigator.sendBeacon(`/studio/posts/${post.id}/unlock`, JSON.stringify({
                 id: post.id,
                 lock: currentLock.getTime()
             }))
-            e.preventDefault()
+            if (hasChanges && e instanceof BeforeUnloadEvent) {
+                e.preventDefault()
+            }
         }
 
         window.addEventListener('beforeunload', handleBeforeUnload)
@@ -178,7 +191,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     useEffect(() => {
         return () => {
             if (process.env.NODE_ENV === 'production') {
-                void unlockPost(post.id, currentLock)
+                void unlockPost(post.id, lockRef.current)
             }
         }
     }, []) // THIS is not supposed to contain anything
@@ -214,17 +227,15 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     }, [ post, previousPost ])
 
     useEffect(() => {
-        if (inEnglish) {
-            setPost({
-                ...post,
-                contentDraftEN: markdownContent
-            })
-        } else {
-            setPost({
-                ...post,
-                contentDraftZH: markdownContent
-            })
-        }
+        setPost(prev => {
+            if (inEnglish) {
+                if (prev.contentDraftEN === markdownContent) return prev
+                return { ...prev, contentDraftEN: markdownContent }
+            } else {
+                if (prev.contentDraftZH === markdownContent) return prev
+                return { ...prev, contentDraftZH: markdownContent }
+            }
+        })
     }, [ markdownContent, inEnglish ])
 
     async function saveChanges() {
@@ -273,6 +284,83 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     }, [])
 
     return <>
+        <Modal show={showTitleForm} size="md" popup onClose={() => setShowTitleForm(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold">更改标题</h3>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="title-zh">标题 (中文)</Label>
+                        </div>
+                        <TextInput id="title-zh" value={post.titleZH} placeholder="世界因我更美好"
+                                   onChange={e => setPost({
+                                       ...post,
+                                       titleZH: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="title-en">标题 (英文)</Label>
+                        </div>
+                        <TextInput id="title-en" value={post.titleEN} placeholder="Better Me, Better World"
+                                   onChange={e => setPost({
+                                       ...post,
+                                       titleEN: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                    <p className="text-sm">英文标题请使用正确大小写，如 Old Meets New: BAID Beijing Cultural
+                        Exploration</p>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={loading} onClick={() => setShowTitleForm(false)}>确认</Button>
+            </ModalFooter>
+        </Modal>
+
+        <Modal show={showSlugForm} size="md" popup onClose={() => setShowSlugForm(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold">更改链接位置</h3>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="slug">链接位置</Label>
+                        </div>
+                        <TextInput id="slug" value={post.slug} placeholder="better-me-better-world"
+                                   onChange={e => setPost({
+                                       ...post,
+                                       slug: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={loading} onClick={() => setShowSlugForm(false)}>确认</Button>
+            </ModalFooter>
+        </Modal>
+
+        <Modal show={showDateForm} size="md" popup onClose={() => setShowDateForm(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold">更改显示日期</h3>
+                    <div>
+                        <Datepicker inline weekStart={1} value={post.createdAt} lang="zh-CN" onChange={d => setPost({
+                            ...post,
+                            createdAt: d ?? new Date()
+                        })}/>
+                    </div>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={loading} onClick={() => setShowDateForm(false)}>确认</Button>
+            </ModalFooter>
+        </Modal>
+
         <Modal show={showMediaLibrary} size="5xl" onClose={() => setShowMediaLibrary(false)} className="relative">
             <ModalHeader className="border-none absolute z-50 right-0"/>
             <MediaLibrary init={mediaLibraryContent} pickMode={true} onPick={image => {
@@ -302,7 +390,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
         <Tabs aria-label="文章编辑器选项卡" variant="default">
             <TabItem active title="内容" icon={HiNewspaper}>
                 <div className="w-full flex gap-8">
-                    <div className="w-2/3 rounded-3xl shadow-lg">
+                    <div className="w-2/3">
                         <SimpleMarkdownEditor value={markdownContent} onChange={setMarkdownContent}/>
                     </div>
                     <div className="w-1/3">
@@ -319,11 +407,25 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                             </Button>
                         </div>
 
-                        <p className="font-bold text-xl">{post.titleZH}</p>
+                        <p className="font-bold text-xl flex items-center gap-3">
+                            {post.titleZH}
+                            <button className="p-2 !h-8 !w-8 bg-blue-500 hover:bg-blue-600 transition-colors
+                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑标题"
+                                    onClick={() => setShowTitleForm(true)}>
+                                <HiPencil className="text-white text-xs"/>
+                            </button>
+                        </p>
                         <p className="text-sm secondary mb-3">{post.titleEN}</p>
 
                         <p className="font-bold secondary text-sm">链接位置</p>
-                        <p className="mb-3">{post.slug}</p>
+                        <p className="mb-3 flex items-center gap-3">
+                            {post.slug}
+                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
+                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑链接位置"
+                                    onClick={() => setShowSlugForm(true)}>
+                                <HiPencil className="text-white text-xs"/>
+                            </button>
+                        </p>
 
                         <p className="font-bold secondary text-sm">状态</p>
                         <p className="mb-3">
@@ -341,8 +443,15 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                             </If>
                         </p>
 
-                        <p className="font-bold secondary text-sm">发表时间</p>
-                        <p className="mb-3">{post.createdAt.toLocaleString()}</p>
+                        <p className="font-bold secondary text-sm">显示日期</p>
+                        <p className="mb-3 flex items-center gap-3">
+                            {post.createdAt.toDateString()}
+                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
+                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑显示日期"
+                                    onClick={() => setShowDateForm(true)}>
+                                <HiPencil className="text-white text-xs"/>
+                            </button>
+                        </p>
 
                         <p className="font-bold secondary text-sm">更新时间</p>
                         <p className="mb-3">{post.updatedAt.toLocaleString()}</p>
@@ -401,6 +510,12 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                     </If>
                 </Button>
                 <article>
+                    <If condition={post.coverImage != null}>
+                        <img className="mb-3 w-full h-64 object-cover rounded-3xl" alt={post.coverImage?.altText}
+                             src={`${uploadPrefix}/${post.coverImage?.sha1}.webp`}/>
+                    </If>
+
+                    <h1>{inEnglish ? post.titleEN : post.titleZH}</h1>
                     <Markdown>{previewContent}</Markdown>
                 </article>
             </TabItem>
@@ -433,7 +548,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                                         <p className="text-green-400">已经由 {post.editorsApproved.map(u => userMap.get(u)?.name).join('、')} 批准，本步骤已完成。</p>
                                     </If>
                                 </TimelineBody>
-                                <If condition={user?.roles.includes(Role.editor) && !post.editorsApproved.includes(user?.id)}>
+                                <If condition={user?.roles?.includes(Role.editor) && !post.editorsApproved.includes(user?.id)}>
                                     <Button disabled={loading} pill color="blue" onClick={async () => {
                                         if (!approvalConfirm) {
                                             setApprovalConfirm(true)
@@ -463,7 +578,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                                         <p className="text-green-400">已经由 {post.adminsApproved.map(u => userMap.get(u)?.name).join('、')} 批准，本步骤已完成。</p>
                                     </If>
                                 </TimelineBody>
-                                <If condition={user?.roles.includes(Role.admin) && !post.adminsApproved.includes(user?.id)}>
+                                <If condition={user?.roles?.includes(Role.admin) && !post.adminsApproved.includes(user?.id)}>
                                     <Button disabled={loading} pill color="blue" onClick={async () => {
                                         if (!approvalConfirm2) {
                                             setApprovalConfirm2(true)
