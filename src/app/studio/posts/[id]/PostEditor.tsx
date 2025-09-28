@@ -17,7 +17,7 @@ import {
     TimelineTitle
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
-import { HiCloudUpload } from 'react-icons/hi'
+import { HiCloudUpload, HiSearch } from 'react-icons/hi'
 import {
     HydratedPost,
     MINIMUM_ADMIN_APPROVALS,
@@ -40,8 +40,9 @@ import {
     unpublishPost
 } from '@/app/studio/posts/post-actions'
 import MediaLibrary from '@/app/studio/media/MediaLibrary'
-import { getImages } from '@/app/studio/media/media-actions'
+import { getImage, getImages } from '@/app/studio/media/media-actions'
 import SimpleMarkdownEditor from '@/app/studio/posts/SimpleMarkdownEditor'
+import Markdown from 'react-markdown'
 
 export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     initPost: HydratedPost,
@@ -56,12 +57,14 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
     const [ mediaLibraryContent, setMediaLibraryContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
+    const [ cachedImages, setCachedImages ] = useState<Map<number, Image>>(new Map())
     const [ publishConfirm, setPublishConfirm ] = useState(false)
     const [ approvalConfirm, setApprovalConfirm ] = useState(false)
     const [ approvalConfirm2, setApprovalConfirm2 ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ markdownContent, setMarkdownContent ] = useState(post.contentDraftZH)
+    const [ previewContent, setPreviewContent ] = useState('')
     const [ inEnglish, setInEnglish ] = useState(false)
     const router = useRouter()
 
@@ -72,6 +75,56 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
             setUser((await getMyUser())!)
         })()
     }, [])
+
+    // Discover images and cache
+
+    // Parse [IMAGE: ID] placeholders, fetch/cached images, and update preview
+    const extractImageIds = (md: string): number[] => {
+        const ids = new Set<number>()
+        const re = /\[IMAGE:\s*(\d+)\s*\]/g
+        let match: RegExpExecArray | null
+        while ((match = re.exec(md)) !== null) {
+            ids.add(Number(match[1]))
+        }
+        return Array.from(ids)
+    }
+
+    useEffect(() => {
+        (async () => {
+            const md = markdownContent ?? ''
+            const ids = extractImageIds(md)
+
+            // Start from current cache
+            const working = new Map(cachedImages)
+
+            // Fetch any images not yet cached
+            const missing = ids.filter(id => !working.has(id))
+            if (missing.length > 0) {
+                const fetched = await Promise.all(missing.map(id => getImage(id)))
+                fetched.forEach(img => {
+                    if (img) {
+                        working.set(img.id, img)
+                    }
+                })
+                // Only update state if we actually added something new
+                if (missing.length > 0) {
+                    setCachedImages(working)
+                }
+            }
+
+            // Replace placeholders with rendered image markdown for preview
+            // NOTE: Using standard Markdown image syntax ![alt](url) so it renders in preview.
+            const replaced = md.replace(/\[IMAGE:\s*(\d+)\s*\]/g, (_m, idStr: string) => {
+                const id = Number(idStr)
+                const image = working.get(id)
+                if (!image) return _m // leave placeholder if not yet loaded
+                const alt = image.altText ?? ''
+                return `![${alt}](${uploadPrefix}/${image.sha1}.webp)`
+            })
+            setPreviewContent(replaced)
+        })()
+    }, [ markdownContent ])
+
 
     // Check locking
     useEffect(() => {
@@ -136,7 +189,6 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
     }, [])
 
     // TODO:
-    //  Editor support media library
     //  Actually loading content
     //  Save and switch language
 
@@ -250,6 +302,11 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                         </div>
                     </div>
                 </div>
+            </TabItem>
+            <TabItem title="预览" icon={HiSearch}>
+                <article>
+                    <Markdown>{previewContent}</Markdown>
+                </article>
             </TabItem>
             <TabItem title="审核与发布" icon={HiCloudUpload}>
                 <div className="p-8">

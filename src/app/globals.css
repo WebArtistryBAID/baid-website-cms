@@ -46,3 +46,11 @@ b {
 i {
     @apply italic;
 }
+
+article a {
+    @apply text-blue-600 hover:underline;
+}
+
+article img {
+    @apply rounded-lg text-center max-w-96 mx-auto;
+}

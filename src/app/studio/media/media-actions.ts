@@ -14,6 +14,13 @@ export async function getUploadServePath(): Promise<string> {
     return process.env.UPLOAD_SERVE_PATH!
 }
 
+export async function getImage(id: number): Promise<Image | null> {
+    await requireUser()
+    return prisma.image.findUnique({
+        where: { id }
+    })
+}
+
 export async function getImages(page: number): Promise<Paginated<Image>> {
     await requireUser()
     const pages = Math.ceil(await prisma.image.count() / PAGE_SIZE)
