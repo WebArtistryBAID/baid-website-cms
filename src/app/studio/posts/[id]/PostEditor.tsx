@@ -501,7 +501,7 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                 </div>
             </TabItem>
             <TabItem title="预览" icon={HiSearch}>
-                <Button pill color="alternative" className="mb-3" disabled={hasChanges} onClick={switchLanguage}>
+                <Button pill color="alternative" className="mb-5" disabled={hasChanges} onClick={switchLanguage}>
                     <If condition={inEnglish}>
                         切换到中文
                     </If>
@@ -509,12 +509,11 @@ export default function PostEditor({ initPost, userMap, lock, uploadPrefix }: {
                         切换到英文
                     </If>
                 </Button>
+                <If condition={post.coverImage != null}>
+                    <img className="mb-5 w-full h-64 object-cover" alt={post.coverImage?.altText}
+                         src={`${uploadPrefix}/${post.coverImage?.sha1}.webp`}/>
+                </If>
                 <article>
-                    <If condition={post.coverImage != null}>
-                        <img className="mb-3 w-full h-64 object-cover rounded-3xl" alt={post.coverImage?.altText}
-                             src={`${uploadPrefix}/${post.coverImage?.sha1}.webp`}/>
-                    </If>
-
                     <h1>{inEnglish ? post.titleEN : post.titleZH}</h1>
                     <Markdown>{previewContent}</Markdown>
                 </article>
