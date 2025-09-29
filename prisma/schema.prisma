@@ -73,6 +73,8 @@ enum EntityType {
   club
   activity
   project
+  course
+  faculty
 }
 
 model UserAuditLog {
