@@ -448,6 +448,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
             <TabItem title="审核与发布" icon={HiCloudUpload}>
                 <ApprovalProcess entityType={EntityType.post} entityId={post.id} entity={post} doAlign={async () => {
                     await alignPost(post.id)
+                    await refreshPost()
                 }}/>
             </TabItem>
         </Tabs>
