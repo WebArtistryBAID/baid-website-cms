@@ -1,8 +1,7 @@
 import PostEditor from '@/app/studio/posts/[id]/PostEditor'
 import { getPost } from '@/app/studio/posts/post-actions'
 import { redirect } from 'next/navigation'
-import { SimplifiedUser } from '@/app/lib/data-types'
-import { getSimplifiedUser, requireUser } from '@/app/login/login-actions'
+import { requireUser } from '@/app/login/login-actions'
 import { EntityType } from '@prisma/client'
 import { tryAcquireLock } from '@/app/lib/lock/lock-typicals'
 
@@ -29,7 +28,7 @@ export default async function StudioPostPage({ params, searchParams }: {
     }
 
     return <div className="p-16">
-        <PostEditor initPost={post}
+        <PostEditor initPost={post} userId={user.id}
                     lockToken={token} uploadPrefix={process.env.UPLOAD_SERVE_PATH!}/>
     </div>
 }

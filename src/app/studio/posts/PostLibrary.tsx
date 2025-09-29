@@ -84,16 +84,16 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
                     {page.items.map(post => <Link href={`/studio/posts/${post.id}`}
                                                   className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                                                   key={post.id}>
-                        <If condition={post.coverImage != null}>
-                            <img src={`${uploadServePath}/${post.coverImage?.sha1}_thumb.webp`}
-                                 alt={post.coverImage?.altText} className="object-cover w-full rounded-3xl h-48"/>
+                        <If condition={post.coverImageDraft != null}>
+                            <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                                 alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
                         </If>
-                        <If condition={post.coverImage == null}>
+                        <If condition={post.coverImageDraft == null}>
                             <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
                         </If>
 
                         <div className="p-8">
-                            <p className="text-xl font-bold mb-1">{post.titleZH}</p>
+                            <p className="text-xl font-bold mb-1">{post.titleDraftZH}</p>
                             <p className="text-sm secondary">更新于 {post.updatedAt.toLocaleString()}</p>
                         </div>
                     </Link>)}

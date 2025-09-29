@@ -27,9 +27,9 @@ export interface Alignable {
     contentDraftEN: string
     contentDraftZH: string
     coverImagePublished: Image | null
-    coverImageDraft: Image
-    coverImageIdPublished: number | null
-    coverImageIdDraft: number
+    coverImageDraft: Image | null
+    coverImagePublishedId: number | null
+    coverImageDraftId: number | null
 }
 
 export function isAligned(item: Alignable) {
@@ -38,10 +38,7 @@ export function isAligned(item: Alignable) {
         item.titlePublishedZH === item.titleDraftZH &&
         item.contentPublishedEN === item.contentDraftEN &&
         item.contentPublishedZH === item.contentDraftZH &&
-        ((item.coverImagePublished === null && item.coverImageDraft === null) ||
-            (item.coverImagePublished !== null &&
-                item.coverImageDraft !== null &&
-                item.coverImageIdPublished === item.coverImageIdDraft))
+        item.coverImagePublishedId === item.coverImageDraftId
     )
 }
 
@@ -58,10 +55,13 @@ export const SIMPLIFIED_USER_SELECT = {
 
 export interface SimplifiedPost {
     id: number
-    titleEN: string
-    titleZH: string
+    titlePublishedEN: string | null
+    titlePublishedZH: string | null
+    titleDraftEN: string
+    titleDraftZH: string
     slug: string
-    coverImage: Image | null
+    coverImagePublished: Image | null
+    coverImageDraft: Image | null
     creator: SimplifiedUser
     createdAt: Date
     updatedAt: Date
@@ -69,10 +69,13 @@ export interface SimplifiedPost {
 
 export const SIMPLIFIED_POST_SELECT = {
     id: true,
-    titleEN: true,
-    titleZH: true,
+    titlePublishedEN: true,
+    titlePublishedZH: true,
+    titleDraftEN: true,
+    titleDraftZH: true,
     slug: true,
-    coverImage: true,
+    coverImagePublished: true,
+    coverImageDraft: true,
     creator: {
         select: SIMPLIFIED_USER_SELECT
     },
@@ -92,9 +95,9 @@ export interface HydratedPost {
     contentDraftEN: string
     contentDraftZH: string
     coverImagePublished: Image | null
-    coverImagePublishedId: number
+    coverImagePublishedId: number | null
     coverImageDraft: Image | null
-    coverImageDraftId: number
+    coverImageDraftId: number | null
     creatorId: number
     creator: SimplifiedUser,
     createdAt: Date,
@@ -104,5 +107,22 @@ export interface HydratedPost {
 export const HYDRATED_POST_SELECT = {
     id: true,
     titlePublishedEN: true,
-    titlePublishedZH: true
+    titlePublishedZH: true,
+    titleDraftEN: true,
+    titleDraftZH: true,
+    slug: true,
+    contentPublishedEN: true,
+    contentPublishedZH: true,
+    contentDraftEN: true,
+    contentDraftZH: true,
+    coverImagePublished: true,
+    coverImagePublishedId: true,
+    coverImageDraft: true,
+    coverImageDraftId: true,
+    creatorId: true,
+    creator: {
+        select: SIMPLIFIED_USER_SELECT
+    },
+    createdAt: true,
+    updatedAt: true
 }

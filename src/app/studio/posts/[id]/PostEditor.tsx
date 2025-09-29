@@ -2,7 +2,8 @@
 
 import If from '@/app/lib/If'
 import {
-    Button, Datepicker,
+    Button,
+    Datepicker,
     Label,
     Modal,
     ModalBody,
@@ -14,33 +15,25 @@ import {
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import {
-    HydratedPost,
-    Paginated
-} from '@/app/lib/data-types'
+import { HydratedPost, Paginated } from '@/app/lib/data-types'
 import { useEffect, useRef, useState } from 'react'
 import { EntityType, Image } from '@prisma/client'
 import { useRouter } from 'next/navigation'
-import {
-    alignPost,
-    deletePost,
-    getPost,
-    unpublishPost,
-    updatePost
-} from '@/app/studio/posts/post-actions'
+import { alignPost, deletePost, getPost, unpublishPost, updatePost } from '@/app/studio/posts/post-actions'
 import MediaLibrary from '@/app/studio/media/MediaLibrary'
 import { getImage, getImages } from '@/app/studio/media/media-actions'
 import SimpleMarkdownEditor from '@/app/studio/posts/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
+import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 
-export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
+export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }: {
     initPost: HydratedPost,
+    userId: number
     lockToken: string,
     uploadPrefix: string
 }) {
     const [ loading, setLoading ] = useState(false)
-    const [ currentLock, setCurrentLock ] = useState(lockToken)
     const [ previousPost, setPreviousPost ] = useState(initPost)
     const [ post, setPost ] = useState(initPost)
     const [ showLockBroken, setShowLockBroken ] = useState(false)
@@ -109,70 +102,6 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
     }, [ markdownContent ])
 
 
-    // = LOCKING
-    const lockRef = useRef<Date>(currentLock)
-    useEffect(() => {
-        lockRef.current = currentLock
-    }, [ currentLock ])
-
-    useEffect(() => {
-        const interval = setInterval(async () => {
-            const alive = await isLockAlive(post.id, lockRef.current)
-            if (!alive) {
-                setShowLockBroken(true)
-                clearInterval(interval)
-            }
-        }, 10000)
-        return () => clearInterval(interval)
-    }, [ post.id ])
-
-    useEffect(() => {
-        const interval = setInterval(async () => {
-            const newLock = await lockPost(post.id, lockRef.current)
-            if (newLock == null) {
-                setShowLockBroken(true)
-                clearInterval(interval)
-                return
-            }
-            setCurrentLock(newLock)
-        }, 55000)
-        return () => clearInterval(interval)
-    }, [ post.id ])
-
-    // Unlock before leaving
-    useEffect(() => {
-        // Only attach unload handlers in production to avoid StrictMode double-invocation noise during development
-        if (process.env.NODE_ENV !== 'production') return
-
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const handleBeforeUnload = (e: any) => {
-            navigator.sendBeacon(`/studio/posts/${post.id}/unlock`, JSON.stringify({
-                id: post.id,
-                lock: currentLock.getTime()
-            }))
-            if (hasChanges && e instanceof BeforeUnloadEvent) {
-                e.preventDefault()
-            }
-        }
-
-        window.addEventListener('beforeunload', handleBeforeUnload)
-        window.addEventListener('pagehide', handleBeforeUnload)
-        return () => {
-            window.removeEventListener('beforeunload', handleBeforeUnload)
-            window.removeEventListener('pagehide', handleBeforeUnload)
-        }
-    }, [ currentLock, post.id ])
-
-    // Unlock before component unmount
-    useEffect(() => {
-        return () => {
-            if (process.env.NODE_ENV === 'production') {
-                void unlockPost(post.id, lockRef.current)
-            }
-        }
-    }, []) // THIS is not supposed to contain anything
-
-
     // = Get media library data
     useEffect(() => {
         (async () => {
@@ -194,9 +123,9 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
 
     // = Save
     useEffect(() => {
-        setHasChanges(post.titleEN !== previousPost.titleEN || post.titleZH !== previousPost.titleZH ||
+        setHasChanges(post.titleDraftEN !== previousPost.titleDraftEN || post.titleDraftZH !== previousPost.titleDraftZH ||
             post.slug !== previousPost.slug ||
-            post.coverImage?.id !== previousPost.coverImage?.id ||
+            post.coverImageDraft?.id !== previousPost.coverImageDraft?.id ||
             post.contentDraftEN !== previousPost.contentDraftEN ||
             post.contentDraftZH !== previousPost.contentDraftZH ||
             post.createdAt !== previousPost.createdAt)
@@ -218,12 +147,12 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
         setLoading(true)
         const newPost = await updatePost({
             id: post.id,
-            titleEN: post.titleEN,
-            titleZH: post.titleZH,
+            titleDraftEN: post.titleDraftEN,
+            titleDraftZH: post.titleDraftZH,
             slug: post.slug,
             contentDraftEN: post.contentDraftEN,
             contentDraftZH: post.contentDraftZH,
-            coverImageId: post.coverImage?.id,
+            coverImageDraftId: post.coverImageDraft?.id,
             createdAt: post.createdAt
         })
         setPost(newPost)
@@ -267,6 +196,16 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
         return () => window.removeEventListener('keydown', onKeyDown)
     }, [])
 
+    // = Locking
+    useEntityLock({
+        entityType: EntityType.post,
+        entityId: post.id,
+        userId,
+        initialToken: lockToken,
+        hasChanges,
+        onLockLost: () => setShowLockBroken(true)
+    })
+
     return <>
         <Modal show={showTitleForm} size="md" popup onClose={() => setShowTitleForm(false)}>
             <ModalHeader/>
@@ -277,10 +216,10 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
                         <div className="mb-2 block">
                             <Label htmlFor="title-zh">标题 (中文)</Label>
                         </div>
-                        <TextInput id="title-zh" value={post.titleZH} placeholder="世界因我更美好"
+                        <TextInput id="title-zh" value={post.titleDraftZH} placeholder="世界因我更美好"
                                    onChange={e => setPost({
                                        ...post,
-                                       titleZH: e.currentTarget.value
+                                       titleDraftZH: e.currentTarget.value
                                    })}
                                    required/>
                     </div>
@@ -288,10 +227,10 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
                         <div className="mb-2 block">
                             <Label htmlFor="title-en">标题 (英文)</Label>
                         </div>
-                        <TextInput id="title-en" value={post.titleEN} placeholder="Better Me, Better World"
+                        <TextInput id="title-en" value={post.titleDraftEN} placeholder="Better Me, Better World"
                                    onChange={e => setPost({
                                        ...post,
-                                       titleEN: e.currentTarget.value
+                                       titleDraftEN: e.currentTarget.value
                                    })}
                                    required/>
                     </div>
@@ -351,7 +290,7 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
                 setShowMediaLibrary(false)
                 setPost({
                     ...post,
-                    coverImage: image
+                    coverImageDraft: image
                 });
                 (async () => {
                     setMediaLibraryContent(await getImages(0))
@@ -395,14 +334,14 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
                         </div>
 
                         <p className="font-bold text-xl flex items-center gap-3">
-                            {post.titleZH}
+                            {post.titleDraftZH}
                             <button className="p-2 !h-8 !w-8 bg-blue-500 hover:bg-blue-600 transition-colors
                              duration-100 rounded-full flex justify-center items-center" aria-label="编辑标题"
                                     onClick={() => setShowTitleForm(true)}>
                                 <HiPencil className="text-white text-xs"/>
                             </button>
                         </p>
-                        <p className="text-sm secondary mb-3">{post.titleEN}</p>
+                        <p className="text-sm secondary mb-3">{post.titleDraftEN}</p>
 
                         <p className="font-bold secondary text-sm">链接位置</p>
                         <p className="mb-3 flex items-center gap-3">
@@ -444,13 +383,13 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
                         <p className="mb-3">{post.updatedAt.toLocaleString()}</p>
 
                         <p className="font-bold secondary text-sm">封面</p>
-                        <If condition={post.coverImage != null}>
+                        <If condition={post.coverImageDraft != null}>
                             <button onClick={() => setShowMediaLibrary(true)} className="cursor-pointer">
-                                <img className="mt-1 mb-3 h-24" alt={post.coverImage?.altText}
-                                     src={`${uploadPrefix}/${post.coverImage?.sha1}_thumb.webp`}/>
+                                <img className="mt-1 mb-3 h-24" alt={post.coverImageDraft?.altText}
+                                     src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
                             </button>
                         </If>
-                        <If condition={post.coverImage == null}>
+                        <If condition={post.coverImageDraft == null}>
                             <Button pill color="blue" className="mt-1 mb-3"
                                     onClick={() => setShowMediaLibrary(true)}>设置封面</Button>
                         </If>
@@ -497,12 +436,12 @@ export default function PostEditor({ initPost, lockToken, uploadPrefix }: {
                         切换到英文
                     </If>
                 </Button>
-                <If condition={post.coverImage != null}>
-                    <img className="mb-5 w-full h-64 object-cover" alt={post.coverImage?.altText}
-                         src={`${uploadPrefix}/${post.coverImage?.sha1}.webp`}/>
+                <If condition={post.coverImageDraft != null}>
+                    <img className="mb-5 w-full h-64 object-cover" alt={post.coverImageDraft?.altText}
+                         src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
                 </If>
                 <article>
-                    <h1>{inEnglish ? post.titleEN : post.titleZH}</h1>
+                    <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
                     <Markdown>{previewContent}</Markdown>
                 </article>
             </TabItem>

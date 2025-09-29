@@ -1,7 +1,7 @@
 'use server'
 
 import crypto from 'crypto'
-import { PrismaClient, EntityType } from '@prisma/client'
+import { EntityType, PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -18,12 +18,11 @@ export async function acquireLock(params: {
     const now = new Date()
     const existing = await prisma.entityLock.findUnique({ where: { entityType_entityId: { entityType, entityId } } })
 
-    // Renewal path (token-based to avoid fragile timestamp equality)
+    // Renewal path
     if (existing && currentToken && existing.token === currentToken) {
-        const token = crypto.randomBytes(16).toString('hex')
         const updated = await prisma.entityLock.update({
             where: { entityType_entityId: { entityType, entityId } },
-            data: { lockedAt: now, lockedBy: userId, token }
+            data: { lockedAt: now, lockedBy: userId, token: currentToken }
         })
         return { token: updated.token, lockedAt: updated.lockedAt }
     }

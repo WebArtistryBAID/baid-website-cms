@@ -61,7 +61,7 @@ export async function unpublishPost(id: number): Promise<void> {
         data: {
             type: UserAuditLogType.unpublishPost,
             userId: user.id,
-            values: [ post.id.toString(), post.titleEN ]
+            values: [ post.id.toString(), post.titleDraftEN ]
         }
     })
 }
@@ -82,15 +82,18 @@ export async function alignPost(id: number): Promise<AlignPostResponse> {
     await prisma.post.update({
         where: { id },
         data: {
+            titlePublishedEN: post.titleDraftEN,
+            titlePublishedZH: post.titleDraftZH,
             contentPublishedEN: post.contentDraftEN,
-            contentPublishedZH: post.contentDraftZH
+            contentPublishedZH: post.contentDraftZH,
+            coverImagePublishedId: post.coverImageDraftId
         }
     })
     await prisma.userAuditLog.create({
         data: {
             type: UserAuditLogType.adminPublishPost,
             userId: user.id,
-            values: [ post.id.toString(), post.titleEN ]
+            values: [ post.id.toString(), post.titleDraftEN ]
         }
     })
     return AlignPostResponse.success
@@ -107,7 +110,7 @@ export async function deletePost(id: number): Promise<void> {
         data: {
             type: UserAuditLogType.deletePost,
             userId: user.id,
-            values: [ post.id.toString(), post.titleEN ]
+            values: [ post.id.toString(), post.titleDraftEN ]
         }
     })
 }
@@ -117,8 +120,8 @@ export async function createPost(titleEN: string, titleZH: string): Promise<Post
     const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.create({
         data: {
-            titleEN,
-            titleZH,
+            titleDraftEN: titleEN,
+            titleDraftZH: titleZH,
             slug: titleEN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
             contentDraftEN: '',
             contentDraftZH: '',
@@ -141,11 +144,11 @@ export async function updatePost(data: {
     id: number
     slug: string | undefined
     createdAt: Date | undefined
-    titleEN: string | undefined
-    titleZH: string | undefined
+    titleDraftEN: string | undefined
+    titleDraftZH: string | undefined
     contentDraftEN: string | undefined
     contentDraftZH: string | undefined
-    coverImageId: number | null | undefined
+    coverImageDraftId: number | null | undefined
 }): Promise<HydratedPost> {
     const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.update({
@@ -153,11 +156,11 @@ export async function updatePost(data: {
         data: {
             slug: data.slug,
             createdAt: data.createdAt,
-            titleEN: data.titleEN,
-            titleZH: data.titleZH,
+            titleDraftEN: data.titleDraftEN,
+            titleDraftZH: data.titleDraftZH,
             contentDraftEN: data.contentDraftEN,
             contentDraftZH: data.contentDraftZH,
-            coverImageId: data.coverImageId
+            coverImageDraftId: data.coverImageDraftId
         },
         select: HYDRATED_POST_SELECT
     })
@@ -165,7 +168,7 @@ export async function updatePost(data: {
         data: {
             type: UserAuditLogType.writerEditPost,
             userId: user.id,
-            values: [ data.id.toString(), post.titleEN ]
+            values: [ data.id.toString(), post.titleDraftEN ]
         }
     })
     return post
@@ -209,8 +212,8 @@ export async function createPostFromWeChat(url: string, coverImageId: number | n
     const user = await requireUserWithRole(Role.writer)
     const post = await prisma.post.create({
         data: {
-            titleEN: 'WeChat Article',
-            titleZH: '微信文章',
+            titleDraftEN: 'WeChat Article',
+            titleDraftZH: '微信文章',
             slug: 'temporary-slug',
             contentDraftEN: '',
             contentDraftZH: '',
@@ -375,12 +378,12 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
                 id: post.id
             },
             data: {
-                titleEN: title,
-                titleZH: titleChinese,
+                titleDraftEN: title,
+                titleDraftZH: titleChinese,
                 slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
                 contentDraftEN: content,
                 contentDraftZH: contentChinese,
-                coverImageId,
+                coverImageDraftId: coverImageId,
                 createdAt: new Date(date)
             }
         })
