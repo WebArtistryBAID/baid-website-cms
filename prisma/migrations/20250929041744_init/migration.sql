@@ -10,6 +10,9 @@ CREATE TYPE "public"."Gender" AS ENUM ('male', 'female', 'others');
 -- CreateEnum
 CREATE TYPE "public"."UserAuditLogType" AS ENUM ('login', 'autoCreatePost', 'writerCreatePost', 'writerEditPost', 'editorApprovePost', 'adminApprovePost', 'adminPublishPost', 'writerCreatePage', 'writerEditPage', 'editorApprovePage', 'adminApprovePage', 'adminPublishPage', 'unpublishPost', 'unpublishPage', 'deletePost', 'deletePage', 'uploadImage', 'deleteImage');
 
+-- CreateEnum
+CREATE TYPE "public"."EntityType" AS ENUM ('post', 'page', 'club', 'activity', 'project');
+
 -- CreateTable
 CREATE TABLE "public"."User" (
     "id" INTEGER NOT NULL,
@@ -45,8 +48,6 @@ CREATE TABLE "public"."Page" (
     "contentPublishedZH" TEXT,
     "contentDraftEN" TEXT NOT NULL,
     "contentDraftZH" TEXT NOT NULL,
-    "editorsApproved" INTEGER[],
-    "adminsApproved" INTEGER[],
     "creatorId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -57,17 +58,17 @@ CREATE TABLE "public"."Page" (
 -- CreateTable
 CREATE TABLE "public"."Post" (
     "id" SERIAL NOT NULL,
-    "titleEN" TEXT NOT NULL,
-    "titleZH" TEXT NOT NULL,
+    "titlePublishedEN"      TEXT,
+    "titlePublishedZH"      TEXT,
+    "titleDraftEN"          TEXT NOT NULL,
+    "titleDraftZH"          TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "contentPublishedEN" TEXT,
     "contentPublishedZH" TEXT,
     "contentDraftEN" TEXT NOT NULL,
     "contentDraftZH" TEXT NOT NULL,
-    "editorsApproved" INTEGER[],
-    "adminsApproved" INTEGER[],
-    "lockedAt" TIMESTAMP(3),
-    "coverImageId" INTEGER,
+    "coverImagePublishedId" INTEGER,
+    "coverImageDraftId"     INTEGER,
     "creatorId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -90,6 +91,43 @@ CREATE TABLE "public"."Image" (
     CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "public"."Approval"
+(
+    "id"         SERIAL                NOT NULL,
+    "entityType" "public"."EntityType" NOT NULL,
+    "entityId"   INTEGER               NOT NULL,
+    "role"       "public"."Role"       NOT NULL,
+    "userId"     INTEGER               NOT NULL,
+    "createdAt"  TIMESTAMP(3)          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Approval_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."ApprovalConfig"
+(
+    "id"         SERIAL                NOT NULL,
+    "entityType" "public"."EntityType" NOT NULL,
+    "minEditor"  INTEGER               NOT NULL DEFAULT 1,
+    "minAdmin"   INTEGER               NOT NULL DEFAULT 1,
+
+    CONSTRAINT "ApprovalConfig_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."EntityLock"
+(
+    "id"         SERIAL                NOT NULL,
+    "entityType" "public"."EntityType" NOT NULL,
+    "entityId"   INTEGER               NOT NULL,
+    "lockedBy"   INTEGER               NOT NULL,
+    "lockedAt"   TIMESTAMP(3)          NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "token"      TEXT                  NOT NULL,
+
+    CONSTRAINT "EntityLock_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "Page_slug_key" ON "public"."Page"("slug");
 
@@ -99,6 +137,21 @@ CREATE UNIQUE INDEX "Post_slug_key" ON "public"."Post"("slug");
 -- CreateIndex
 CREATE UNIQUE INDEX "Image_sha1_key" ON "public"."Image"("sha1");
 
+-- CreateIndex
+CREATE INDEX "Approval_entityType_entityId_idx" ON "public"."Approval" ("entityType", "entityId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Approval_entityType_entityId_role_userId_key" ON "public"."Approval" ("entityType", "entityId", "role", "userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ApprovalConfig_entityType_key" ON "public"."ApprovalConfig" ("entityType");
+
+-- CreateIndex
+CREATE INDEX "EntityLock_lockedBy_idx" ON "public"."EntityLock" ("lockedBy");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "EntityLock_entityType_entityId_key" ON "public"."EntityLock" ("entityType", "entityId");
+
 -- AddForeignKey
 ALTER TABLE "public"."UserAuditLog" ADD CONSTRAINT "UserAuditLog_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -106,7 +159,12 @@ ALTER TABLE "public"."UserAuditLog" ADD CONSTRAINT "UserAuditLog_userId_fkey" FO
 ALTER TABLE "public"."Page" ADD CONSTRAINT "Page_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Post" ADD CONSTRAINT "Post_coverImageId_fkey" FOREIGN KEY ("coverImageId") REFERENCES "public"."Image"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Post"
+    ADD CONSTRAINT "Post_coverImagePublishedId_fkey" FOREIGN KEY ("coverImagePublishedId") REFERENCES "public"."Image" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Post"
+    ADD CONSTRAINT "Post_coverImageDraftId_fkey" FOREIGN KEY ("coverImageDraftId") REFERENCES "public"."Image" ("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Post" ADD CONSTRAINT "Post_creatorId_fkey" FOREIGN KEY ("creatorId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

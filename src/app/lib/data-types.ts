@@ -1,8 +1,5 @@
 import { Gender, Image, Role, UserType } from '@prisma/client'
 
-export const MINIMUM_EDITOR_APPROVALS = 1
-export const MINIMUM_ADMIN_APPROVALS = 1
-
 export interface Paginated<T> {
     items: T[]
     page: number
@@ -18,6 +15,34 @@ export interface SimplifiedUser {
     gender: Gender
     createdAt: Date
     updatedAt: Date
+}
+
+export interface Alignable {
+    titlePublishedEN: string | null
+    titlePublishedZH: string | null
+    titleDraftEN: string
+    titleDraftZH: string
+    contentPublishedEN: string | null
+    contentPublishedZH: string | null
+    contentDraftEN: string
+    contentDraftZH: string
+    coverImagePublished: Image | null
+    coverImageDraft: Image
+    coverImageIdPublished: number | null
+    coverImageIdDraft: number
+}
+
+export function isAligned(item: Alignable) {
+    return (
+        item.titlePublishedEN === item.titleDraftEN &&
+        item.titlePublishedZH === item.titleDraftZH &&
+        item.contentPublishedEN === item.contentDraftEN &&
+        item.contentPublishedZH === item.contentDraftZH &&
+        ((item.coverImagePublished === null && item.coverImageDraft === null) ||
+            (item.coverImagePublished !== null &&
+                item.coverImageDraft !== null &&
+                item.coverImageIdPublished === item.coverImageIdDraft))
+    )
 }
 
 export const SIMPLIFIED_USER_SELECT = {
@@ -37,8 +62,6 @@ export interface SimplifiedPost {
     titleZH: string
     slug: string
     coverImage: Image | null
-    editorsApproved: number[]
-    adminsApproved: number[]
     creator: SimplifiedUser
     createdAt: Date
     updatedAt: Date
@@ -50,8 +73,6 @@ export const SIMPLIFIED_POST_SELECT = {
     titleZH: true,
     slug: true,
     coverImage: true,
-    editorsApproved: true,
-    adminsApproved: true,
     creator: {
         select: SIMPLIFIED_USER_SELECT
     },
@@ -61,38 +82,27 @@ export const SIMPLIFIED_POST_SELECT = {
 
 export interface HydratedPost {
     id: number
-    titleEN: string
-    titleZH: string
+    titlePublishedEN: string | null
+    titlePublishedZH: string | null
+    titleDraftEN: string
+    titleDraftZH: string
     slug: string
-    coverImage: Image | null
-    editorsApproved: number[]
-    adminsApproved: number[]
-    creator: SimplifiedUser
-    createdAt: Date
-    updatedAt: Date
-    lockedAt: Date | null
-    contentDraftEN: string
-    contentDraftZH: string
     contentPublishedEN: string | null
     contentPublishedZH: string | null
+    contentDraftEN: string
+    contentDraftZH: string
+    coverImagePublished: Image | null
+    coverImagePublishedId: number
+    coverImageDraft: Image | null
+    coverImageDraftId: number
+    creatorId: number
+    creator: SimplifiedUser,
+    createdAt: Date,
+    updatedAt: Date
 }
 
 export const HYDRATED_POST_SELECT = {
     id: true,
-    titleEN: true,
-    titleZH: true,
-    slug: true,
-    contentDraftEN: true,
-    contentDraftZH: true,
-    contentPublishedEN: true,
-    contentPublishedZH: true,
-    coverImage: true,
-    editorsApproved: true,
-    adminsApproved: true,
-    creator: {
-        select: SIMPLIFIED_USER_SELECT
-    },
-    createdAt: true,
-    updatedAt: true,
-    lockedAt: true
+    titlePublishedEN: true,
+    titlePublishedZH: true
 }

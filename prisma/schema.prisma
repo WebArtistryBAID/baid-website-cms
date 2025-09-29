@@ -67,6 +67,14 @@ enum UserAuditLogType {
   deleteImage
 }
 
+enum EntityType {
+  post
+  page
+  club
+  activity
+  project
+}
+
 model UserAuditLog {
   id     Int              @id @default(autoincrement())
   time   DateTime         @default(now())
@@ -85,8 +93,6 @@ model Page {
   contentPublishedZH String? // Puck editor content
   contentDraftEN     String // Puck editor content
   contentDraftZH     String // Puck editor content
-  editorsApproved    Int[] // Array of user IDs
-  adminsApproved     Int[] // Array of user IDs
   creatorId          Int
   creator            User     @relation(fields: [creatorId], references: [id])
   createdAt          DateTime @default(now())
@@ -94,24 +100,24 @@ model Page {
 }
 
 model Post {
-  id           Int       @id @default(autoincrement())
-  titleEN      String
-  titleZH      String
-  slug         String    @unique
-  contentPublishedEN String? // Markdown
-  contentPublishedZH String? // Markdown
-  contentDraftEN     String // Markdown
-  contentDraftZH     String // Markdown
-  editorsApproved    Int[] // Array of user IDs
-  adminsApproved     Int[] // Array of user IDs
-  lockedAt     DateTime?
-  lockedBy     Int?
-  coverImage   Image?    @relation(fields: [coverImageId], references: [id], onDelete: SetNull)
-  coverImageId Int?
-  creatorId          Int
-  creator      User      @relation(fields: [creatorId], references: [id])
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id                    Int      @id @default(autoincrement())
+  titlePublishedEN      String?
+  titlePublishedZH      String?
+  titleDraftEN          String
+  titleDraftZH          String
+  slug                  String   @unique
+  contentPublishedEN    String? // Markdown
+  contentPublishedZH    String? // Markdown
+  contentDraftEN        String // Markdown
+  contentDraftZH        String // Markdown
+  coverImagePublished   Image?   @relation("linkedPostsPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId Int?
+  coverImageDraft       Image?   @relation("linkedPostsDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId     Int?
+  creatorId             Int
+  creator               User     @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 }
 
 model Image {
@@ -126,5 +132,37 @@ model Image {
   uploaderId Int?
   createdAt  DateTime @default(now())
 
-  linkedPosts Post[]
+  linkedPostsDraft Post[] @relation("linkedPostsDraft")
+  linkedPostsPub   Post[] @relation("linkedPostsPub")
+}
+
+model Approval {
+  id         Int        @id @default(autoincrement())
+  entityType EntityType
+  entityId   Int
+  role       Role
+  userId     Int
+  createdAt  DateTime   @default(now())
+
+  @@unique([entityType, entityId, role, userId])
+  @@index([entityType, entityId])
+}
+
+model ApprovalConfig {
+  id         Int        @id @default(autoincrement())
+  entityType EntityType @unique
+  minEditor  Int        @default(1)
+  minAdmin   Int        @default(1)
+}
+
+model EntityLock {
+  id         Int        @id @default(autoincrement())
+  entityType EntityType
+  entityId   Int
+  lockedBy   Int
+  lockedAt   DateTime   @default(now())
+  token      String
+
+  @@unique([entityType, entityId])
+  @@index([lockedBy])
 }

@@ -1,11 +1,9 @@
 'use server'
 
-import { Post, PrismaClient, Role, User, UserAuditLogType } from '@prisma/client'
+import { EntityType, Post, PrismaClient, Role, User, UserAuditLogType } from '@prisma/client'
 import {
     HYDRATED_POST_SELECT,
     HydratedPost,
-    MINIMUM_ADMIN_APPROVALS,
-    MINIMUM_EDITOR_APPROVALS,
     Paginated,
     SIMPLIFIED_POST_SELECT,
     SimplifiedPost
@@ -17,6 +15,7 @@ import { spawn } from 'child_process'
 import sharp from 'sharp'
 import crypto from 'crypto'
 import { AlignPostResponse, WeChatWorkerStatus } from '@/app/studio/posts/post-types'
+import { meetsThresholds } from '@/app/lib/approval/approval-actions'
 
 const PAGE_SIZE = 24
 
@@ -74,11 +73,11 @@ export async function alignPost(id: number): Promise<AlignPostResponse> {
     if (post == null) {
         return AlignPostResponse.notFound
     }
-    if (post.editorsApproved.length < MINIMUM_EDITOR_APPROVALS) {
-        return AlignPostResponse.editorApprovalsNotEnough
-    }
-    if (post.adminsApproved.length < MINIMUM_ADMIN_APPROVALS) {
-        return AlignPostResponse.adminApprovalsNotEnough
+    if (!(await meetsThresholds({
+        entityType: EntityType.post,
+        entityId: id
+    }))) {
+        return AlignPostResponse.insufficientApprovals
     }
     await prisma.post.update({
         where: { id },
@@ -97,56 +96,6 @@ export async function alignPost(id: number): Promise<AlignPostResponse> {
     return AlignPostResponse.success
 }
 
-export async function editorApprovePost(id: number): Promise<void> {
-    const user = await requireUserWithRole(Role.editor)
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return
-    }
-    if (!post.editorsApproved.includes(user.id)) {
-        await prisma.post.update({
-            where: { id },
-            data: {
-                editorsApproved: {
-                    push: user.id
-                }
-            }
-        })
-        await prisma.userAuditLog.create({
-            data: {
-                type: UserAuditLogType.editorApprovePost,
-                userId: user.id,
-                values: [ post.id.toString(), post.titleEN ]
-            }
-        })
-    }
-}
-
-export async function adminApprovePost(id: number): Promise<void> {
-    const user = await requireUserWithRole(Role.admin)
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (post == null) {
-        return
-    }
-    if (!post.adminsApproved.includes(user.id)) {
-        await prisma.post.update({
-            where: { id },
-            data: {
-                adminsApproved: {
-                    push: user.id
-                }
-            }
-        })
-        await prisma.userAuditLog.create({
-            data: {
-                type: UserAuditLogType.adminApprovePost,
-                userId: user.id,
-                values: [ post.id.toString(), post.titleEN ]
-            }
-        })
-    }
-}
-
 export async function deletePost(id: number): Promise<void> {
     const user = await requireUserWithRole(Role.editor)
     const post = await prisma.post.delete({
@@ -163,93 +112,6 @@ export async function deletePost(id: number): Promise<void> {
     })
 }
 
-// = LOCKING
-// A post must be locked when it is being edited to prevent conflict.
-// A lock is defined by its timestamp. Another user can choose to override the lock, which kicks out the previous editor
-// Locks must be renewed every minute
-export async function lockPost(id: number, currentLock: Date | null): Promise<Date | null> {
-    const user = await requireUserWithRole(Role.writer) // assume returns user
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (!post) return null
-
-    const now = new Date()
-    const FRESH_MS = 90_000 // 1.5 minutes
-    const isFresh = post.lockedAt && (now.getTime() - post.lockedAt.getTime() <= FRESH_MS)
-
-    // No existing lock or expired -> take lock
-    if (!post.lockedAt || !isFresh) {
-        const newLock = new Date()
-        await prisma.post.update({
-            where: { id },
-            data: { lockedAt: newLock, lockedBy: user.id }
-        })
-        return newLock
-    }
-
-    // Existing fresh lock
-    // Renewal path: only if timestamp matches and owned by same user
-    if (currentLock && post.lockedAt.getTime() === currentLock.getTime() && post.lockedBy === user.id) {
-        const newLock = new Date()
-        await prisma.post.update({
-            where: { id },
-            data: { lockedAt: newLock, lockedBy: user.id }
-        })
-        return newLock
-    }
-
-    // Someone else holds a fresh lock -> deny
-    return null
-}
-
-export async function overrideAndLockPost(id: number): Promise<Date | null> {
-    const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (!post) return null
-
-    const newLock = new Date()
-    await prisma.post.update({
-        where: { id },
-        data: { lockedAt: newLock, lockedBy: user.id }
-    })
-    return newLock
-}
-
-export async function unlockPost(id: number, lock: Date): Promise<void> {
-    const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (!post || !post.lockedAt) return
-    if (post.lockedBy !== user.id) return
-    const SKEW_MS = 15_000
-    const delta = Math.abs(post.lockedAt.getTime() - lock.getTime())
-    if (delta > SKEW_MS) return
-
-    await prisma.post.update({
-        where: { id },
-        data: { lockedAt: null, lockedBy: null }
-    })
-}
-
-export async function isPostLocked(id: number): Promise<boolean> {
-    await requireUserWithRole(Role.writer)
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (!post || !post.lockedAt || !post.lockedBy) return false
-    return new Date().getTime() - post.lockedAt.getTime() <= 90_000
-}
-
-export async function isLockAlive(id: number, lock: Date): Promise<boolean> {
-    const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.findUnique({ where: { id } })
-    if (!post || !post.lockedAt || !post.lockedBy) return false
-
-    const fresh = new Date().getTime() - post.lockedAt.getTime() <= 90_000
-    if (!fresh) return false
-
-    // If it's your lock and still fresh, it's alive, regardless of renewal advancing the timestamp.
-    if (post.lockedBy === user.id) return true
-    // Otherwise, it's someone else's fresh lock -> not alive for you.
-    return false
-}
-
 // = CREATING AND EDITING
 export async function createPost(titleEN: string, titleZH: string): Promise<Post> {
     const user = await requireUserWithRole(Role.writer)
@@ -262,8 +124,6 @@ export async function createPost(titleEN: string, titleZH: string): Promise<Post
             contentDraftZH: '',
             contentPublishedEN: null,
             contentPublishedZH: null,
-            editorsApproved: [],
-            adminsApproved: [],
             creatorId: user.id
         }
     })
@@ -297,9 +157,7 @@ export async function updatePost(data: {
             titleZH: data.titleZH,
             contentDraftEN: data.contentDraftEN,
             contentDraftZH: data.contentDraftZH,
-            coverImageId: data.coverImageId,
-            editorsApproved: [],
-            adminsApproved: []
+            coverImageId: data.coverImageId
         },
         select: HYDRATED_POST_SELECT
     })
@@ -358,8 +216,6 @@ export async function createPostFromWeChat(url: string, coverImageId: number | n
             contentDraftZH: '',
             contentPublishedEN: null,
             contentPublishedZH: null,
-            editorsApproved: [],
-            adminsApproved: [],
             creatorId: user.id
         }
     })

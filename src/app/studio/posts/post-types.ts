@@ -10,7 +10,6 @@ export enum WeChatWorkerStatus {
 
 export enum AlignPostResponse {
     success,
-    editorApprovalsNotEnough,
-    adminApprovalsNotEnough,
+    insufficientApprovals,
     notFound
 }
