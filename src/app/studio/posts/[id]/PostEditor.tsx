@@ -15,13 +15,11 @@ import {
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { HydratedPost, Paginated } from '@/app/lib/data-types'
-import { useEffect, useRef, useState } from 'react'
-import { EntityType, Image } from '@prisma/client'
+import { HydratedPost } from '@/app/lib/data-types'
+import { useState } from 'react'
+import { EntityType } from '@prisma/client'
 import { useRouter } from 'next/navigation'
 import { alignPost, deletePost, getPost, unpublishPost, updatePost } from '@/app/studio/posts/post-actions'
-import MediaLibrary from '@/app/studio/media/MediaLibrary'
-import { getImage, getImages } from '@/app/studio/media/media-actions'
 import SimpleMarkdownEditor from '@/app/studio/posts/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
@@ -29,6 +27,8 @@ import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
 import MediaPicker from '@/app/studio/media/MediaPicker'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
+import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
+import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 
 export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }: {
     initPost: HydratedPost,
@@ -36,19 +36,15 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
     lockToken: string,
     uploadPrefix: string
 }) {
-    const [ loading, setLoading ] = useState(false)
-    const [ previousPost, setPreviousPost ] = useState(initPost)
-    const [ post, setPost ] = useState(initPost)
+    const [ loadingAdditional, setLoadingAdditional ] = useState(false)
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
     const [ showTitleForm, setShowTitleForm ] = useState(false)
     const [ showSlugForm, setShowSlugForm ] = useState(false)
     const [ showDateForm, setShowDateForm ] = useState(false)
-    const [ mediaLibraryContent, setMediaLibraryContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
-    const [ markdownContent, setMarkdownContent ] = useState(post.contentDraftZH)
-    const [ hasChanges, setHasChanges ] = useState(false)
+    const [ markdownContent, setMarkdownContent ] = useState(initPost.contentDraftZH)
     const [ inEnglish, setInEnglish ] = useState(false)
     const router = useRouter()
 
@@ -56,14 +52,6 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
         markdown: markdownContent,
         uploadPrefix
     })
-
-    // = Get media library data
-    useEffect(() => {
-        (async () => {
-            setMediaLibraryContent(await getImages(0))
-        })()
-    }, [])
-
 
     // = Switch language
     function switchLanguage() {
@@ -77,79 +65,39 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
     }
 
     // = Save
-    useEffect(() => {
-        setHasChanges(post.titleDraftEN !== previousPost.titleDraftEN || post.titleDraftZH !== previousPost.titleDraftZH ||
-            post.slug !== previousPost.slug ||
-            post.coverImageDraft?.id !== previousPost.coverImageDraft?.id ||
-            post.contentDraftEN !== previousPost.contentDraftEN ||
-            post.contentDraftZH !== previousPost.contentDraftZH ||
-            post.createdAt !== previousPost.createdAt)
-    }, [ post, previousPost ])
+    const {
+        draft: post,
+        setDraft: setPost,
+        hasChanges,
+        loading,
+        save,
+        refresh
+    } = useSavableEntity({
+        initial: initPost,
+        saveFn: async draft => await updatePost({
+            id: draft.id,
+            titleDraftEN: draft.titleDraftEN,
+            titleDraftZH: draft.titleDraftZH,
+            slug: draft.slug,
+            contentDraftEN: draft.contentDraftEN,
+            contentDraftZH: draft.contentDraftZH,
+            coverImageDraftId: draft.coverImageDraft?.id,
+            createdAt: draft.createdAt
+        }),
+        refreshFn: async () => (await getPost(initPost.id))!,
+        compareKeys: [
+            'titleDraftEN',
+            'titleDraftZH',
+            'slug',
+            'coverImageDraft.id',
+            'contentDraftEN',
+            'contentDraftZH',
+            'createdAt'
+        ]
+    })
+    useSaveShortcut(true, save)
 
-    useEffect(() => {
-        setPost(prev => {
-            if (inEnglish) {
-                if (prev.contentDraftEN === markdownContent) return prev
-                return { ...prev, contentDraftEN: markdownContent }
-            } else {
-                if (prev.contentDraftZH === markdownContent) return prev
-                return { ...prev, contentDraftZH: markdownContent }
-            }
-        })
-    }, [ markdownContent, inEnglish ])
-
-    async function saveChanges() {
-        setLoading(true)
-        const newPost = await updatePost({
-            id: post.id,
-            titleDraftEN: post.titleDraftEN,
-            titleDraftZH: post.titleDraftZH,
-            slug: post.slug,
-            contentDraftEN: post.contentDraftEN,
-            contentDraftZH: post.contentDraftZH,
-            coverImageDraftId: post.coverImageDraft?.id,
-            createdAt: post.createdAt
-        })
-        setPost(newPost)
-        setPreviousPost(newPost)
-        setLoading(false)
-    }
-
-    async function refreshPost() {
-        setLoading(true)
-        const newPost = await getPost(post.id)
-        setPost(newPost!)
-        setPreviousPost(newPost!)
-        setLoading(false)
-    }
-
-    // = Mod + S to save
-    const loadingRef = useRef(loading)
-    const hasChangesRef = useRef(hasChanges)
-    const saveRef = useRef(saveChanges)
-    useEffect(() => {
-        loadingRef.current = loading
-    }, [ loading ])
-    useEffect(() => {
-        hasChangesRef.current = hasChanges
-    }, [ hasChanges ])
-    useEffect(() => {
-        saveRef.current = saveChanges
-    }, [ saveChanges ])
-
-    useEffect(() => {
-        const onKeyDown = (e: KeyboardEvent) => {
-            if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
-                e.preventDefault()
-                // Only save when not loading and there are changes
-                if (!loadingRef.current && hasChangesRef.current) {
-                    void saveRef.current()
-                }
-            }
-        }
-        window.addEventListener('keydown', onKeyDown)
-        return () => window.removeEventListener('keydown', onKeyDown)
-    }, [])
+    // = Confirm actions
 
     // = Locking
     useEntityLock({
@@ -241,7 +189,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
 
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio/posts"/>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} onPick={image => {
-            setPost({ ...post, coverImageDraft: image })
+            setPost({ ...post, coverImageDraft: image, coverImageDraftId: image.id })
             setShowMediaLibrary(false)
         }}/>
 
@@ -249,12 +197,19 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
             <TabItem active title="内容" icon={HiNewspaper}>
                 <div className="w-full flex gap-8">
                     <div className="w-2/3">
-                        <SimpleMarkdownEditor value={markdownContent} onChange={setMarkdownContent}/>
+                        <SimpleMarkdownEditor value={markdownContent} onChange={(content: string) => {
+                            setMarkdownContent(content)
+                            if (inEnglish) {
+                                setPost({ ...post, contentDraftEN: content })
+                            } else {
+                                setPost({ ...post, contentDraftZH: content })
+                            }
+                        }}/>
                     </div>
                     <div className="w-1/3">
                         <div className="flex mb-3 gap-3">
                             <Button pill color="blue" disabled={!hasChanges || loading}
-                                    onClick={saveChanges}>保存更改</Button>
+                                    onClick={save}>保存更改</Button>
                             <Button pill color="alternative" disabled={hasChanges} onClick={switchLanguage}>
                                 <If condition={inEnglish}>
                                     切换到中文
@@ -331,28 +286,28 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
 
                         <div className="flex gap-3">
                             <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
-                                <Button disabled={loading} pill color="red" onClick={async () => {
+                                <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
                                     if (!unpublishConfirm) {
                                         setUnpublishConfirm(true)
                                         return
                                     }
-                                    setLoading(true)
+                                    setLoadingAdditional(true)
                                     await unpublishPost(post.id)
-                                    setLoading(false)
-                                    await refreshPost()
+                                    setLoadingAdditional(false)
+                                    await refresh()
                                     router.refresh()
                                 }}>
                                     {unpublishConfirm ? '确认撤回?' : '撤回发布'}
                                 </Button>
                             </If>
-                            <Button disabled={loading} pill color="red" onClick={async () => {
+                            <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
                                 if (!deleteConfirm) {
                                     setDeleteConfirm(true)
                                     return
                                 }
-                                setLoading(true)
+                                setLoadingAdditional(true)
                                 await deletePost(post.id)
-                                setLoading(false)
+                                setLoadingAdditional(false)
                                 router.push('/studio/posts')
                             }}>{deleteConfirm ? '确认删除?' : '删除'}</Button>
                         </div>
@@ -380,7 +335,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
             <TabItem title="审核与发布" icon={HiCloudUpload}>
                 <ApprovalProcess entityType={EntityType.post} entityId={post.id} entity={post} doAlign={async () => {
                     await alignPost(post.id)
-                    await refreshPost()
+                    await refresh()
                 }}/>
             </TabItem>
         </Tabs>
