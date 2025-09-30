@@ -19,14 +19,9 @@ model User {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
-  ownedPages      Page[]
-  ownedPosts      Post[]
-  ownedImages     Image[]
-  ownedClubs      ClubContent[]
-  ownedActivities ActivityContent[]
-  ownedProjects   ProjectContent[]
-  ownedCourses    CourseContent[]
-  ownedFaculties  FacultyContent[]
+  ownedPages    Page[]
+  ownedEntities ContentEntity[]
+  ownedImages   Image[]
 }
 
 enum Role {
@@ -51,11 +46,11 @@ enum UserAuditLogType {
 
   autoCreatePost
 
-  writerCreatePost
-  writerEditPost
-  editorApprovePost
-  adminApprovePost
-  adminPublishPost
+  writerCreateEntity
+  writerEditEntity
+  editorApproveEntity
+  adminApproveEntity
+  adminPublishEntity
 
   writerCreatePage
   writerEditPage
@@ -63,9 +58,9 @@ enum UserAuditLogType {
   adminApprovePage
   adminPublishPage
 
-  unpublishPost
+  unpublishEntity
   unpublishPage
-  deletePost
+  deleteEntity
   deletePage
 
   uploadImage
@@ -94,7 +89,7 @@ model UserAuditLog {
 model Page {
   id                 Int      @id @default(autoincrement())
   name               String
-  // Special slugs: /posts (for posts list), /post/yyyy/MM/dd/title (for individual post)
+  // Special slugs: /editor (for editor list), /posts/yyyy/MM/dd/title (for individual posts)
   slug               String   @unique
   contentPublishedEN String? // Puck editor content
   contentPublishedZH String? // Puck editor content
@@ -106,130 +101,27 @@ model Page {
   updatedAt          DateTime @updatedAt
 }
 
-model Post {
-  id                    Int      @id @default(autoincrement())
+model ContentEntity {
+  id                  Int         @id @default(autoincrement())
+  type                EntityType
   titlePublishedEN      String?
   titlePublishedZH      String?
   titleDraftEN          String
   titleDraftZH          String
-  slug                  String   @unique
+  slug                String      @unique
   contentPublishedEN    String? // Markdown
   contentPublishedZH    String? // Markdown
   contentDraftEN        String // Markdown
   contentDraftZH        String // Markdown
-  coverImagePublished   Image?   @relation("linkedPostsPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublished Image?      @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
   coverImagePublishedId Int?
-  coverImageDraft       Image?   @relation("linkedPostsDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraft     Image?      @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
   coverImageDraftId     Int?
   creatorId             Int
-  creator               User     @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model ClubContent {
-  id                    Int      @id @default(autoincrement())
-  titlePublishedEN      String?
-  titlePublishedZH      String?
-  titleDraftEN          String
-  titleDraftZH          String
-  slug                  String   @unique
-  contentPublishedEN    String? // Markdown
-  contentPublishedZH    String? // Markdown
-  contentDraftEN        String // Markdown
-  contentDraftZH        String // Markdown
-  coverImagePublished   Image?   @relation("linkedClubsPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
-  coverImagePublishedId Int?
-  coverImageDraft       Image?   @relation("linkedClubsDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
-  coverImageDraftId     Int?
-  creatorId             Int
-  creator               User     @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model ActivityContent {
-  id                    Int      @id @default(autoincrement())
-  titlePublishedEN      String?
-  titlePublishedZH      String?
-  titleDraftEN          String
-  titleDraftZH          String
-  slug                  String   @unique
-  contentPublishedEN    String? // Markdown
-  contentPublishedZH    String? // Markdown
-  contentDraftEN        String // Markdown
-  contentDraftZH        String // Markdown
-  coverImagePublished   Image?   @relation("linkedActivitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
-  coverImagePublishedId Int?
-  coverImageDraft       Image?   @relation("linkedActivitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
-  coverImageDraftId     Int?
-  creatorId             Int
-  creator               User     @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model ProjectContent {
-  id                    Int      @id @default(autoincrement())
-  titlePublishedEN      String?
-  titlePublishedZH      String?
-  titleDraftEN          String
-  titleDraftZH          String
-  slug                  String   @unique
-  contentPublishedEN    String? // Markdown
-  contentPublishedZH    String? // Markdown
-  contentDraftEN        String // Markdown
-  contentDraftZH        String // Markdown
-  coverImagePublished   Image?   @relation("linkedProjectsPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
-  coverImagePublishedId Int?
-  coverImageDraft       Image?   @relation("linkedProjectsDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
-  coverImageDraftId     Int?
-  creatorId             Int
-  creator               User     @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model CourseContent {
-  id                    Int      @id @default(autoincrement())
-  titlePublishedEN      String?
-  titlePublishedZH      String?
-  titleDraftEN          String
-  titleDraftZH          String
-  slug                  String   @unique
-  contentPublishedEN    String? // Markdown
-  contentPublishedZH    String? // Markdown
-  contentDraftEN        String // Markdown
-  contentDraftZH        String // Markdown
-  coverImagePublished   Image?   @relation("linkedCoursesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
-  coverImagePublishedId Int?
-  coverImageDraft       Image?   @relation("linkedCoursesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
-  coverImageDraftId     Int?
-  creatorId             Int
-  creator               User     @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-}
-
-model FacultyContent {
-  id                    Int      @id @default(autoincrement())
-  titlePublishedEN      String?
-  titlePublishedZH      String?
-  titleDraftEN          String
-  titleDraftZH          String
-  slug                  String   @unique
-  contentPublishedEN    String? // Markdown
-  contentPublishedZH    String? // Markdown
-  contentDraftEN        String // Markdown
-  contentDraftZH        String // Markdown
-  coverImagePublished   Image?   @relation("linkedFacultiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
-  coverImagePublishedId Int?
-  coverImageDraft       Image?   @relation("linkedFacultiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
-  coverImageDraftId     Int?
-  creatorId             Int
-  creator               User     @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  creator             User        @relation(fields: [creatorId], references: [id])
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  locks               EntityLock[]
 }
 
 model Image {
@@ -244,18 +136,8 @@ model Image {
   uploaderId Int?
   createdAt  DateTime @default(now())
 
-  linkedPostsDraft      Post[]            @relation("linkedPostsDraft")
-  linkedPostsPub        Post[]            @relation("linkedPostsPub")
-  linkedClubsDraft      ClubContent[]     @relation("linkedClubsDraft")
-  linkedClubsPub        ClubContent[]     @relation("linkedClubsPub")
-  linkedActivitiesDraft ActivityContent[] @relation("linkedActivitiesDraft")
-  linkedActivitiesPub   ActivityContent[] @relation("linkedActivitiesPub")
-  linkedProjectsDraft   ProjectContent[]  @relation("linkedProjectsDraft")
-  linkedProjectsPub     ProjectContent[]  @relation("linkedProjectsPub")
-  linkedCoursesDraft    CourseContent[]   @relation("linkedCoursesDraft")
-  linkedCoursesPub      CourseContent[]   @relation("linkedCoursesPub")
-  linkedFacultiesDraft  FacultyContent[]  @relation("linkedFacultiesDraft")
-  linkedFacultiesPub    FacultyContent[]  @relation("linkedFacultiesPub")
+  linkedEntitiesDraft ContentEntity[] @relation("linkedEntitiesDraft")
+  linkedEntitiesPub   ContentEntity[] @relation("linkedEntitiesPub")
 }
 
 model Approval {
@@ -278,11 +160,12 @@ model ApprovalConfig {
 }
 
 model EntityLock {
-  id         Int        @id @default(autoincrement())
+  id       Int           @id @default(autoincrement())
   entityType EntityType
   entityId   Int
+  entity   ContentEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
   lockedBy   Int
-  lockedAt   DateTime   @default(now())
+  lockedAt DateTime      @default(now())
   token      String
 
   @@unique([entityType, entityId])

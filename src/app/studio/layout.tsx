@@ -18,8 +18,10 @@ import { ROLES_TRANSLATIONS } from '@/app/lib/common-translations'
 import {
     HiBookmarkSquare,
     HiChartPie,
-    HiNewspaper, HiPencil,
-    HiPhoto, HiPresentationChartBar,
+    HiNewspaper,
+    HiPencil,
+    HiPhoto,
+    HiPresentationChartBar,
     HiPuzzlePiece,
     HiShare,
     HiStar,
@@ -57,28 +59,29 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                             <SidebarItem as={Link} href="/studio/media" icon={HiPhoto}>
                                 媒体库
                             </SidebarItem>
-                            <SidebarItem as={Link} href="/studio/posts" icon={HiNewspaper}>
-                                文章
-                            </SidebarItem>
-                            <SidebarCollapse label="共享内容" icon={HiShare}>
-                                <SidebarItem as={Link} href="/studio/shared/clubs" icon={HiPuzzlePiece}>
+                            <SidebarCollapse label="内容" icon={HiShare}>
+                                <SidebarItem as={Link} href="/studio/posts" icon={HiNewspaper}>
+                                    文章
+                                </SidebarItem>
+
+                                <SidebarItem as={Link} href="/studio/clubs" icon={HiPuzzlePiece}>
                                     社团
                                 </SidebarItem>
 
-                                <SidebarItem as={Link} href="/studio/shared/activities" icon={HiStar}>
+                                <SidebarItem as={Link} href="/studio/activities" icon={HiStar}>
                                     校园活动
                                 </SidebarItem>
 
-                                <SidebarItem as={Link} href="/studio/shared/projects" icon={HiPresentationChartBar}>
-                                    学生项目
+                                <SidebarItem as={Link} href="/studio/projects" icon={HiPresentationChartBar}>
+                                    自主项目
                                 </SidebarItem>
 
-                                <SidebarItem as={Link} href="/studio/shared/course" icon={HiPencil}>
-                                    课程
+                                <SidebarItem as={Link} href="/studio/courses" icon={HiPencil}>
+                                    课程介绍
                                 </SidebarItem>
 
-                                <SidebarItem as={Link} href="/studio/shared/faculty" icon={HiUser}>
-                                    教师
+                                <SidebarItem as={Link} href="/studio/faculties" icon={HiUser}>
+                                    教职工介绍
                                 </SidebarItem>
                             </SidebarCollapse>
                             <If condition={myUser?.roles.includes(Role.admin)}>

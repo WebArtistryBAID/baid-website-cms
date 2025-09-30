@@ -15,12 +15,9 @@ import {
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { HydratedPost } from '@/app/lib/data-types'
 import { useState } from 'react'
-import { EntityType } from '@prisma/client'
 import { useRouter } from 'next/navigation'
-import { alignPost, deletePost, getPost, unpublishPost, updatePost } from '@/app/studio/posts/post-actions'
-import SimpleMarkdownEditor from '@/app/studio/posts/SimpleMarkdownEditor'
+import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
@@ -29,9 +26,17 @@ import MediaPicker from '@/app/studio/media/MediaPicker'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
+import { HydratedContentEntity } from '@/app/lib/data-types'
+import {
+    alignContentEntity,
+    deleteContentEntity,
+    getContentEntity,
+    unpublishContentEntity,
+    updateContentEntity
+} from '@/app/studio/editor/entity-actions'
 
-export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }: {
-    initPost: HydratedPost,
+export default function ContentEntityEditor({ init, userId, lockToken, uploadPrefix }: {
+    init: HydratedContentEntity,
     userId: number
     lockToken: string,
     uploadPrefix: string
@@ -44,7 +49,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
     const [ showDateForm, setShowDateForm ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
-    const [ markdownContent, setMarkdownContent ] = useState(initPost.contentDraftZH)
+    const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
     const [ inEnglish, setInEnglish ] = useState(false)
     const router = useRouter()
 
@@ -73,8 +78,8 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
         save,
         refresh
     } = useSavableEntity({
-        initial: initPost,
-        saveFn: async draft => await updatePost({
+        initial: init,
+        saveFn: async draft => await updateContentEntity({
             id: draft.id,
             titleDraftEN: draft.titleDraftEN,
             titleDraftZH: draft.titleDraftZH,
@@ -84,7 +89,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
             coverImageDraftId: draft.coverImageDraft?.id,
             createdAt: draft.createdAt
         }),
-        refreshFn: async () => (await getPost(initPost.id))!,
+        refreshFn: async () => (await getContentEntity(init.id))!,
         compareKeys: [
             'titleDraftEN',
             'titleDraftZH',
@@ -101,7 +106,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
 
     // = Locking
     useEntityLock({
-        entityType: EntityType.post,
+        entityType: init.type,
         entityId: post.id,
         userId,
         initialToken: lockToken,
@@ -187,7 +192,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
             </ModalFooter>
         </Modal>
 
-        <LockBrokenPrompt show={showLockBroken} returnUri="/studio/posts"/>
+        <LockBrokenPrompt show={showLockBroken} returnUri="/studio"/>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} onPick={image => {
             setPost({ ...post, coverImageDraft: image, coverImageDraftId: image.id })
             setShowMediaLibrary(false)
@@ -292,7 +297,7 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
                                         return
                                     }
                                     setLoadingAdditional(true)
-                                    await unpublishPost(post.id)
+                                    await unpublishContentEntity(post.id)
                                     setLoadingAdditional(false)
                                     await refresh()
                                     router.refresh()
@@ -306,9 +311,9 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
                                     return
                                 }
                                 setLoadingAdditional(true)
-                                await deletePost(post.id)
+                                await deleteContentEntity(post.id)
                                 setLoadingAdditional(false)
-                                router.push('/studio/posts')
+                                router.push('/studio')
                             }}>{deleteConfirm ? '确认删除?' : '删除'}</Button>
                         </div>
                     </div>
@@ -333,8 +338,8 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
                 </article>
             </TabItem>
             <TabItem title="审核与发布" icon={HiCloudUpload}>
-                <ApprovalProcess entityType={EntityType.post} entityId={post.id} entity={post} doAlign={async () => {
-                    await alignPost(post.id)
+                <ApprovalProcess entityType={init.type} entityId={post.id} entity={post} doAlign={async () => {
+                    await alignContentEntity(post.id)
                     await refresh()
                 }}/>
             </TabItem>

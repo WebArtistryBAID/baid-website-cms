@@ -10,7 +10,7 @@ export default function LockBrokenPrompt({ show, returnUri }: { show: boolean, r
         <ModalHeader/>
         <ModalBody>
             <div className="space-y-6">
-                <h3 className="text-xl font-bold">其他用户正在编辑文章</h3>
+                <h3 className="text-xl font-bold">其他用户正在编辑</h3>
                 <p className="text-sm">另一名用户中断了您的编辑。您的编辑未保存。</p>
             </div>
         </ModalBody>

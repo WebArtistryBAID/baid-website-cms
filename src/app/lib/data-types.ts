@@ -1,4 +1,4 @@
-import { Gender, Image, Role, UserType } from '@prisma/client'
+import { ContentEntity, EntityType, Gender, Image, Role, UserType } from '@prisma/client'
 
 export interface Paginated<T> {
     items: T[]
@@ -17,22 +17,7 @@ export interface SimplifiedUser {
     updatedAt: Date
 }
 
-export interface Alignable {
-    titlePublishedEN: string | null
-    titlePublishedZH: string | null
-    titleDraftEN: string
-    titleDraftZH: string
-    contentPublishedEN: string | null
-    contentPublishedZH: string | null
-    contentDraftEN: string
-    contentDraftZH: string
-    coverImagePublished: Image | null
-    coverImageDraft: Image | null
-    coverImagePublishedId: number | null
-    coverImageDraftId: number | null
-}
-
-export function isAligned(item: Alignable) {
+export function isAligned(item: ContentEntity) {
     return (
         item.titlePublishedEN === item.titleDraftEN &&
         item.titlePublishedZH === item.titleDraftZH &&
@@ -53,8 +38,9 @@ export const SIMPLIFIED_USER_SELECT = {
     updatedAt: true
 }
 
-export interface SimplifiedPost {
+export interface SimplifiedContentEntity {
     id: number
+    type: EntityType,
     titlePublishedEN: string | null
     titlePublishedZH: string | null
     titleDraftEN: string
@@ -67,8 +53,9 @@ export interface SimplifiedPost {
     updatedAt: Date
 }
 
-export const SIMPLIFIED_POST_SELECT = {
+export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
     id: true,
+    type: true,
     titlePublishedEN: true,
     titlePublishedZH: true,
     titleDraftEN: true,
@@ -83,8 +70,9 @@ export const SIMPLIFIED_POST_SELECT = {
     updatedAt: true
 }
 
-export interface HydratedPost {
+export interface HydratedContentEntity {
     id: number
+    type: EntityType,
     titlePublishedEN: string | null
     titlePublishedZH: string | null
     titleDraftEN: string
@@ -104,8 +92,9 @@ export interface HydratedPost {
     updatedAt: Date
 }
 
-export const HYDRATED_POST_SELECT = {
+export const HYDRATED_CONTENT_ENTITY_SELECT = {
     id: true,
+    type: true,
     titlePublishedEN: true,
     titlePublishedZH: true,
     titleDraftEN: true,

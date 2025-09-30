@@ -8,7 +8,7 @@ export enum WeChatWorkerStatus {
     creatingPost = 'creatingPost'
 }
 
-export enum AlignPostResponse {
+export enum AlignEntityResponse {
     success = 'success',
     insufficientApprovals = 'insufficientApprovals',
     notFound = 'notFound'

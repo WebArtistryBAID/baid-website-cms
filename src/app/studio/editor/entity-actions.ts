@@ -1,12 +1,12 @@
 'use server'
 
-import { EntityType, Post, PrismaClient, Role, User, UserAuditLogType } from '@prisma/client'
+import { ContentEntity, EntityType, PrismaClient, Role, User, UserAuditLogType } from '@prisma/client'
 import {
-    HYDRATED_POST_SELECT,
-    HydratedPost,
+    HYDRATED_CONTENT_ENTITY_SELECT,
+    HydratedContentEntity,
     Paginated,
-    SIMPLIFIED_POST_SELECT,
-    SimplifiedPost
+    SIMPLIFIED_CONTENT_ENTITY_SELECT,
+    SimplifiedContentEntity
 } from '@/app/lib/data-types'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import fs from 'fs/promises'
@@ -14,7 +14,7 @@ import path from 'path'
 import { spawn } from 'child_process'
 import sharp from 'sharp'
 import crypto from 'crypto'
-import { AlignPostResponse, WeChatWorkerStatus } from '@/app/studio/posts/post-types'
+import { AlignEntityResponse, WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
 import { meetsThresholds } from '@/app/lib/approval/approval-actions'
 import { pkgUp } from 'pkg-up'
 
@@ -22,13 +22,14 @@ const PAGE_SIZE = 24
 
 const prisma = new PrismaClient()
 
-export async function getPosts(page: number): Promise<Paginated<SimplifiedPost>> {
-    const pages = Math.ceil(await prisma.post.count() / PAGE_SIZE)
-    const posts = await prisma.post.findMany({
+export async function getContentEntities(page: number, type: EntityType): Promise<Paginated<SimplifiedContentEntity>> {
+    const pages = Math.ceil(await prisma.contentEntity.count({ where: { type } }) / PAGE_SIZE)
+    const posts = await prisma.contentEntity.findMany({
+        where: { type },
         orderBy: { createdAt: 'desc' },
         skip: page * PAGE_SIZE,
         take: PAGE_SIZE,
-        select: SIMPLIFIED_POST_SELECT
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
     return {
         items: posts,
@@ -37,30 +38,33 @@ export async function getPosts(page: number): Promise<Paginated<SimplifiedPost>>
     }
 }
 
-export async function getPost(id: number): Promise<HydratedPost | null> {
-    return prisma.post.findUnique({
+export async function getContentEntity(id: number): Promise<HydratedContentEntity | null> {
+    return prisma.contentEntity.findUnique({
         where: { id },
-        select: HYDRATED_POST_SELECT
+        select: HYDRATED_CONTENT_ENTITY_SELECT
     })
 }
 
-export async function unpublishPost(id: number): Promise<void> {
+export async function unpublishContentEntity(id: number): Promise<void> {
     const user = await requireUserWithRole(Role.editor)
-    const post = await prisma.post.findUnique({ where: { id } })
+    const post = await prisma.contentEntity.findUnique({ where: { id } })
     if (post == null) {
         return
     }
 
-    await prisma.post.update({
+    await prisma.contentEntity.update({
         where: { id },
         data: {
+            titlePublishedEN: null,
+            titlePublishedZH: null,
+            coverImagePublishedId: null,
             contentPublishedEN: null,
             contentPublishedZH: null
         }
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.unpublishPost,
+            type: UserAuditLogType.unpublishEntity,
             userId: user.id,
             values: [ post.id.toString(), post.titleDraftEN ]
         }
@@ -68,19 +72,19 @@ export async function unpublishPost(id: number): Promise<void> {
 }
 
 // Align draft content with published content (in effect, publishing or overriding existing publish)
-export async function alignPost(id: number): Promise<AlignPostResponse> {
+export async function alignContentEntity(id: number): Promise<AlignEntityResponse> {
     const user = await requireUserWithRole(Role.admin)
-    const post = await prisma.post.findUnique({ where: { id } })
+    const post = await prisma.contentEntity.findUnique({ where: { id } })
     if (post == null) {
-        return AlignPostResponse.notFound
+        return AlignEntityResponse.notFound
     }
     if (!(await meetsThresholds({
-        entityType: EntityType.post,
+        entityType: post.type,
         entityId: id
     }))) {
-        return AlignPostResponse.insufficientApprovals
+        return AlignEntityResponse.insufficientApprovals
     }
-    await prisma.post.update({
+    await prisma.contentEntity.update({
         where: { id },
         data: {
             titlePublishedEN: post.titleDraftEN,
@@ -92,24 +96,24 @@ export async function alignPost(id: number): Promise<AlignPostResponse> {
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.adminPublishPost,
+            type: UserAuditLogType.adminPublishEntity,
             userId: user.id,
             values: [ post.id.toString(), post.titleDraftEN ]
         }
     })
-    return AlignPostResponse.success
+    return AlignEntityResponse.success
 }
 
-export async function deletePost(id: number): Promise<void> {
+export async function deleteContentEntity(id: number): Promise<void> {
     const user = await requireUserWithRole(Role.editor)
-    const post = await prisma.post.delete({
+    const post = await prisma.contentEntity.delete({
         where: {
             id
         }
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.deletePost,
+            type: UserAuditLogType.deleteEntity,
             userId: user.id,
             values: [ post.id.toString(), post.titleDraftEN ]
         }
@@ -117,10 +121,11 @@ export async function deletePost(id: number): Promise<void> {
 }
 
 // = CREATING AND EDITING
-export async function createPost(titleEN: string, titleZH: string): Promise<Post> {
+export async function createContentEntity(type: EntityType, titleEN: string, titleZH: string): Promise<SimplifiedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.create({
+    const post = await prisma.contentEntity.create({
         data: {
+            type,
             titleDraftEN: titleEN,
             titleDraftZH: titleZH,
             slug: titleEN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
@@ -129,11 +134,12 @@ export async function createPost(titleEN: string, titleZH: string): Promise<Post
             contentPublishedEN: null,
             contentPublishedZH: null,
             creatorId: user.id
-        }
+        },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.writerCreatePost,
+            type: UserAuditLogType.writerCreateEntity,
             userId: user.id,
             values: [ post.id.toString(), titleEN ]
         }
@@ -141,7 +147,7 @@ export async function createPost(titleEN: string, titleZH: string): Promise<Post
     return post
 }
 
-export async function updatePost(data: {
+export async function updateContentEntity(data: {
     id: number
     slug: string | undefined
     createdAt: Date | undefined
@@ -150,9 +156,9 @@ export async function updatePost(data: {
     contentDraftEN: string | undefined
     contentDraftZH: string | undefined
     coverImageDraftId: number | null | undefined
-}): Promise<HydratedPost> {
+}): Promise<HydratedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.update({
+    const post = await prisma.contentEntity.update({
         where: { id: data.id },
         data: {
             slug: data.slug,
@@ -163,11 +169,11 @@ export async function updatePost(data: {
             contentDraftZH: data.contentDraftZH,
             coverImageDraftId: data.coverImageDraftId
         },
-        select: HYDRATED_POST_SELECT
+        select: HYDRATED_CONTENT_ENTITY_SELECT
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.writerEditPost,
+            type: UserAuditLogType.writerEditEntity,
             userId: user.id,
             values: [ data.id.toString(), post.titleDraftEN ]
         }
@@ -205,14 +211,15 @@ export async function checkWeChatWorkerStatus(): Promise<WeChatWorkerStatus> {
     return wechatWorkerRunning
 }
 
-// Crawl a WeChat article and create a post from it
+// Crawl a WeChat article and create a posts from it
 export async function createPostFromWeChat(url: string, coverImageId: number | null): Promise<void> {
     if (wechatWorkerRunning !== WeChatWorkerStatus.idle) {
         return
     }
     const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.post.create({
+    const post = await prisma.contentEntity.create({
         data: {
+            type: EntityType.post,
             titleDraftEN: 'WeChat Article',
             titleDraftZH: '微信文章',
             slug: 'temporary-slug',
@@ -225,7 +232,7 @@ export async function createPostFromWeChat(url: string, coverImageId: number | n
     })
     await prisma.userAuditLog.create({
         data: {
-            type: UserAuditLogType.writerCreatePost,
+            type: UserAuditLogType.writerCreateEntity,
             userId: user.id,
             values: [ post.id.toString(), 'WeChat Article' ]
         }
@@ -233,7 +240,7 @@ export async function createPostFromWeChat(url: string, coverImageId: number | n
     void workOnWeChat(url, coverImageId, user, post)
 }
 
-async function workOnWeChat(link: string, coverImageId: number | null, user: User, post: Post) {
+async function workOnWeChat(link: string, coverImageId: number | null, user: User, post: ContentEntity) {
     try {
         wechatWorkerRunning = WeChatWorkerStatus.download
         console.log(`+ Starting article download from ${link}.`)
@@ -373,7 +380,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
             mapping.set(file, img.id)
         }
 
-        // STEP 5: Create post for review
+        // STEP 5: Create posts for review
         wechatWorkerRunning = WeChatWorkerStatus.creatingPost
         let finalContentEN = content
         let finalContentZH = contentChinese
@@ -386,7 +393,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
             finalContentZH = finalContentZH.replace(re, `[IMAGE: ${id}]`)
         }
 
-        await prisma.post.update({
+        await prisma.contentEntity.update({
             where: {
                 id: post.id
             },
@@ -402,7 +409,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         })
     } catch (e) {
         console.error(`+ Build failed with ${e}`)
-        await prisma.post.delete({
+        await prisma.contentEntity.delete({
             where: { id: post.id }
         })
     } finally {

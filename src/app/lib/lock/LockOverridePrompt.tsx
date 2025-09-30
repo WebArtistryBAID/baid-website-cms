@@ -6,16 +6,15 @@ import { useState } from 'react'
 import { overrideLock } from '@/app/lib/lock/lock-actions'
 import { EntityType } from '@prisma/client'
 
-export default function LockOverridePrompt({ entityType, entityId, userId, returnUri }: {
+export default function LockOverridePrompt({ entityType, entityId, userId }: {
     entityType: EntityType,
     entityId: number,
-    userId: number,
-    returnUri: string // no trailing slash!
+    userId: number
 }) {
     const [ loading, setLoading ] = useState(false)
     const router = useRouter()
 
-    return <Modal show={true} size="md" popup onClose={() => router.push(returnUri)}>
+    return <Modal show={true} size="md" popup onClose={() => router.push('/studio')}>
         <ModalHeader/>
         <ModalBody>
             <div className="space-y-6">
@@ -33,9 +32,9 @@ export default function LockOverridePrompt({ entityType, entityId, userId, retur
                     userId
                 })
                 setLoading(false)
-                router.push(`${returnUri}/${entityId}?token=${lock.token}`)
+                router.push(`/studio/editor/${entityId}?token=${lock.token}`)
             }}>覆盖并继续</Button>
-            <Button disabled={loading} pill color="alternative" onClick={() => router.push(returnUri)}>
+            <Button disabled={loading} pill color="alternative" onClick={() => router.push('/studio')}>
                 取消
             </Button>
         </ModalFooter>

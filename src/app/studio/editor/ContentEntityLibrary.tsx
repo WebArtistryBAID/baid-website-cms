@@ -1,17 +1,27 @@
 'use client'
 
-import { Paginated, SimplifiedPost } from '@/app/lib/data-types'
+import { Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
-import { checkWeChatWorkerStatus, createPost, createPostFromWeChat, getPosts } from '@/app/studio/posts/post-actions'
+import {
+    checkWeChatWorkerStatus,
+    createContentEntity,
+    createPostFromWeChat,
+    getContentEntities
+} from '@/app/studio/editor/entity-actions'
 import { Button, Label, Modal, ModalBody, ModalFooter, ModalHeader, Pagination, TextInput } from 'flowbite-react'
 import If from '@/app/lib/If'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { WeChatWorkerStatus } from '@/app/studio/posts/post-types'
+import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
+import { EntityType } from '@prisma/client'
 
-export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> }) {
-    const [ page, setPage ] = useState<Paginated<SimplifiedPost>>(init)
+export default function ContentEntityLibrary({ init, title, type }: {
+    init: Paginated<SimplifiedContentEntity>,
+    title: string,
+    type: EntityType
+}) {
+    const [ page, setPage ] = useState<Paginated<SimplifiedContentEntity>>(init)
     const [ currentPage, setCurrentPage ] = useState(0)
     const [ showCreate, setShowCreate ] = useState(false)
     const [ postTitleEN, setPostTitleEN ] = useState('')
@@ -30,7 +40,7 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
             setWeChatStatus(await checkWeChatWorkerStatus())
 
             if (page.page !== currentPage) {
-                setPage(await getPosts(currentPage))
+                setPage(await getContentEntities(currentPage, type))
             }
         })()
     }, [ currentPage, page.page ])
@@ -40,7 +50,7 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
             <ModalHeader/>
             <ModalBody>
                 <div className="space-y-6">
-                    <h3 className="text-xl font-bold">创建文章</h3>
+                    <h3 className="text-xl font-bold">创建{title}</h3>
                     <div>
                         <div className="mb-2 block">
                             <Label htmlFor="title-zh">标题 (中文)</Label>
@@ -65,10 +75,10 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
                 <Button disabled={loading} pill color="blue" onClick={async () => {
                     if (!postTitleEN || !postTitleZH) return
                     setLoading(true)
-                    const post = await createPost(postTitleEN, postTitleZH)
+                    const post = await createContentEntity(type, postTitleEN, postTitleZH)
                     setLoading(false)
                     setShowCreate(false)
-                    router.push(`/studio/posts/${post.id}`)
+                    router.push(`/studio/editor/${post.id}`)
                 }}>创建</Button>
                 <Button disabled={loading} pill color="alternative" onClick={() => setShowCreate(false)}>
                     取消
@@ -89,6 +99,8 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
                                    onChange={e => setWeChatLink(e.currentTarget.value)}
                                    required/>
                     </div>
+                    <p className="text-sm">同步需要 5 到 10
+                        分钟。同步完成后，请检查排版、中文内容及自动翻译。图片会自动放入媒体库。</p>
                 </div>
             </ModalBody>
             <ModalFooter>
@@ -116,40 +128,51 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
             <If condition={page.pages < 1}>
                 <div className="flex flex-col justify-center items-center">
                     <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
-                    <p className="mb-3">暂时没有文章。</p>
-                    <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>手动创建</Button>
-                    <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
-                            onClick={() => setShowWeChatLink(true)}>
-                        {{
-                            idle: '同步微信公众号文章',
-                            download: '正在下载文章...',
-                            imageClassification: '正在分类图片...',
-                            sanitization: '正在清理内容...',
-                            translation: '正在翻译内容...',
-                            savingImages: '正在保存图片...',
-                            creatingPost: '正在创建文章...'
-                        }[wechatStatus]}
+                    <p className="mb-3">暂时没有{title}</p>
+                    <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>
+                        <If condition={type === EntityType.post}>手动</If>创建
                     </Button>
+                    <If condition={type === EntityType.post}>
+                        <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                                onClick={() => setShowWeChatLink(true)}>
+                            {{
+                                idle: '同步微信公众号文章',
+                                download: '正在下载文章...',
+                                imageClassification: '正在分类图片...',
+                                sanitization: '正在清理内容...',
+                                translation: '正在翻译内容...',
+                                savingImages: '正在保存图片...',
+                                creatingPost: '正在创建文章...'
+                            }[wechatStatus]}
+                        </Button>
+                    </If>
                 </div>
             </If>
             <If condition={page.pages > 0}>
-                <Button pill className="mb-5" disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
-                        onClick={() => setShowWeChatLink(true)}>
-                    {{
-                        idle: '同步微信公众号文章',
-                        download: '正在下载文章...',
-                        imageClassification: '正在分类图片...',
-                        sanitization: '正在清理内容...',
-                        translation: '正在翻译内容...',
-                        savingImages: '正在保存图片...',
-                        creatingPost: '正在创建文章...'
-                    }[wechatStatus]}
-                </Button>
+                <div className="flex gap-3 mb-5">
+                    <If condition={type === EntityType.post}>
+                        <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                                onClick={() => setShowWeChatLink(true)}>
+                            {{
+                                idle: '同步微信公众号文章',
+                                download: '正在下载文章...',
+                                imageClassification: '正在分类图片...',
+                                sanitization: '正在清理内容...',
+                                translation: '正在翻译内容...',
+                                savingImages: '正在保存图片...',
+                                creatingPost: '正在创建文章...'
+                            }[wechatStatus]}
+                        </Button>
+                    </If>
+                    <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>
+                        <If condition={type === EntityType.post}>手动</If>创建
+                    </Button>
+                </div>
                 <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                     {page.items.filter(post => post.slug !== 'temporary-slug').map(post => <Link
-                        href={`/studio/posts/${post.id}`}
-                                                  className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
-                                                  key={post.id}>
+                        href={`/studio/editor/${post.id}`}
+                        className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
+                        key={post.id}>
                         <If condition={post.coverImageDraft != null}>
                             <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                                  alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
