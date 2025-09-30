@@ -85,7 +85,7 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
                         <div className="mb-2 block">
                             <Label htmlFor="wechat-link">链接</Label>
                         </div>
-                        <TextInput id="wechat-link" value={wechatLink} placeholder="https://mp.weixin.qq.com/"
+                        <TextInput id="wechat-link" value={wechatLink} placeholder="https://mp.weixin.qq.com/..."
                                    onChange={e => setWeChatLink(e.currentTarget.value)}
                                    required/>
                     </div>

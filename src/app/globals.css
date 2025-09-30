@@ -51,6 +51,18 @@ article a {
     @apply text-blue-600 hover:underline;
 }
 
+article ul {
+    @apply list-inside list-disc;
+}
+
+article ol {
+    @apply list-inside list-decimal;
+}
+
+article p {
+    @apply mb-3;
+}
+
 article img {
     @apply rounded-lg text-center max-w-96 mx-auto mb-3;
 }

@@ -91,7 +91,7 @@ export default function SimpleMarkdownEditor({
     }, [ handleChange, value, readOnly ])
 
     const container =
-        'rounded-2xl shadow p-0 border border-gray-200 overflow-hidden bg-white ' +
+        'rounded-2xl shadow p-0 border border-gray-200 overflow-hidden  bg-white ' +
         className
     const editorBox =
         'font-mono text-sm leading-6 outline-none p-4 whitespace-pre-wrap ' +
@@ -121,7 +121,7 @@ export default function SimpleMarkdownEditor({
                 autoFocus={autoFocus}
                 onKeyDown={handleKeyDown}
                 preClassName="language-markdown"
-                style={{ height: '30rem' }}
+                style={{ height: '30rem', overflowY: 'auto' }}
             />
             <div className="px-4 py-2 text-xs text-gray-500 flex">
                 <p className="flex-grow mr-auto">{value.length} 字符 · Markdown</p>

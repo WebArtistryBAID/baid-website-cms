@@ -16,6 +16,7 @@ import sharp from 'sharp'
 import crypto from 'crypto'
 import { AlignPostResponse, WeChatWorkerStatus } from '@/app/studio/posts/post-types'
 import { meetsThresholds } from '@/app/lib/approval/approval-actions'
+import { pkgUp } from 'pkg-up'
 
 const PAGE_SIZE = 24
 
@@ -238,7 +239,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         console.log(`+ Starting article download from ${link}.`)
         // STEP 0: Download the article
         await fs.mkdir(`/tmp/article-build-${post.id}`)
-        await runCommand(path.join(process.env.HOME!, 'blobs', 'downloader'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
+        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', 'downloader-macos'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
 
         // Move from /tmp/article-build-${build.id}/(...) to /tmp/article-build-${build.id}/article
         const files = await fs.readdir(`/tmp/article-build-${post.id}`)
@@ -337,6 +338,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
 
         // STEP 4: Store images in media library
         wechatWorkerRunning = WeChatWorkerStatus.savingImages
+        const mapping: Map<string, number> = new Map()
         for (const file of toKeep) {
             const fileBuffer = await fs.readFile(path.join(`/tmp/article-build-${post.id}/article`, file))
             const webpBuffer = await sharp(fileBuffer).webp().toBuffer()
@@ -346,7 +348,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
             }).webp().toBuffer()
             const hash = crypto.createHash('sha1').update(webpBuffer).digest('hex')
             await fs.writeFile(path.join(process.env.UPLOAD_PATH!, hash + '.webp'), webpBuffer)
-            await fs.writeFile(path.join(process.env.UPLOAD_PATH!, hash + '_thump.webp'), thumbnailBuffer)
+            await fs.writeFile(path.join(process.env.UPLOAD_PATH!, hash + '_thumb.webp'), thumbnailBuffer)
 
             const metadata = await sharp(webpBuffer).metadata()
 
@@ -368,11 +370,22 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
                     values: [ img.id.toString(), hash ]
                 }
             })
+            mapping.set(file, img.id)
         }
 
         // STEP 5: Create post for review
-        // TODO Image format not decided - need to replace in content
         wechatWorkerRunning = WeChatWorkerStatus.creatingPost
+        let finalContentEN = content
+        let finalContentZH = contentChinese
+
+        for (const [ file, id ] of mapping) {
+            const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+            const escapedFile = escapeRegExp(file)
+            const re = new RegExp(`!\\[[^\\]]*\\]\\([^)]*${escapedFile}[^)]*\\)`, 'g')
+            finalContentEN = finalContentEN.replace(re, `[IMAGE: ${id}]`)
+            finalContentZH = finalContentZH.replace(re, `[IMAGE: ${id}]`)
+        }
+
         await prisma.post.update({
             where: {
                 id: post.id
@@ -381,14 +394,17 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
                 titleDraftEN: title,
                 titleDraftZH: titleChinese,
                 slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-                contentDraftEN: content,
-                contentDraftZH: contentChinese,
+                contentDraftEN: finalContentEN,
+                contentDraftZH: finalContentZH,
                 coverImageDraftId: coverImageId,
                 createdAt: new Date(date)
             }
         })
     } catch (e) {
         console.error(`+ Build failed with ${e}`)
+        await prisma.post.delete({
+            where: { id: post.id }
+        })
     } finally {
         wechatWorkerRunning = WeChatWorkerStatus.idle
     }
