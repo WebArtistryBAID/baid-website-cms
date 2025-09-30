@@ -105,7 +105,7 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
                     await createPostFromWeChat(wechatLink, null)
                     setWeChatStatus(WeChatWorkerStatus.download)
                     setShowWeChatLink(false)
-                }}>创建</Button>
+                }}>开始同步任务</Button>
                 <Button disabled={loading} pill color="alternative" onClick={() => setShowWeChatLink(false)}>
                     取消
                 </Button>
@@ -113,27 +113,38 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
         </Modal>
 
         <div className="p-8">
-            <Button pill className="mb-5" disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
-                    onClick={() => setShowWeChatLink(true)}>
-                {{
-                    idle: '同步微信公众号文章',
-                    download: '正在下载文章...',
-                    imageClassification: '正在分类图片...',
-                    sanitization: '正在清理内容...',
-                    translation: '正在翻译内容...',
-                    savingImages: '正在保存图片...',
-                    creatingPost: '正在创建文章...'
-                }[wechatStatus]}
-            </Button>
-
             <If condition={page.pages < 1}>
                 <div className="flex flex-col justify-center items-center">
                     <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
                     <p className="mb-3">暂时没有文章。</p>
-                    <Button pill color="blue" onClick={() => setShowCreate(true)}>创建</Button>
+                    <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>手动创建</Button>
+                    <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                            onClick={() => setShowWeChatLink(true)}>
+                        {{
+                            idle: '同步微信公众号文章',
+                            download: '正在下载文章...',
+                            imageClassification: '正在分类图片...',
+                            sanitization: '正在清理内容...',
+                            translation: '正在翻译内容...',
+                            savingImages: '正在保存图片...',
+                            creatingPost: '正在创建文章...'
+                        }[wechatStatus]}
+                    </Button>
                 </div>
             </If>
             <If condition={page.pages > 0}>
+                <Button pill className="mb-5" disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                        onClick={() => setShowWeChatLink(true)}>
+                    {{
+                        idle: '同步微信公众号文章',
+                        download: '正在下载文章...',
+                        imageClassification: '正在分类图片...',
+                        sanitization: '正在清理内容...',
+                        translation: '正在翻译内容...',
+                        savingImages: '正在保存图片...',
+                        creatingPost: '正在创建文章...'
+                    }[wechatStatus]}
+                </Button>
                 <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                     {page.items.map(post => <Link href={`/studio/posts/${post.id}`}
                                                   className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
