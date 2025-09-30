@@ -1,7 +1,12 @@
 'use client'
 
 import { HydratedContentEntity } from '@/app/lib/data-types'
-import { getContentEntity, updateContentEntity } from '@/app/studio/editor/entity-actions'
+import {
+    deleteContentEntity,
+    getContentEntity,
+    unpublishContentEntity,
+    updateContentEntity
+} from '@/app/studio/editor/entity-actions'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useState } from 'react'
@@ -10,6 +15,8 @@ import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck-config'
 import { Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
+import { useRouter } from 'next/navigation'
+import If from '@/app/lib/If'
 
 export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,
@@ -19,7 +26,12 @@ export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
 }) {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMetadata, setShowMetadata ] = useState(false)
+    const [ deleteConfirm, setDeleteConfirm ] = useState(false)
+    const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
+    const [ loadingAdditional, setLoadingAdditional ] = useState(false)
     const [ inEnglish, setInEnglish ] = useState(false)
+
+    const router = useRouter()
 
     // = Switch language
     function switchLanguage() {
@@ -32,7 +44,8 @@ export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
         setDraft,
         hasChanges,
         loading,
-        save
+        save,
+        refresh
     } = useSavableEntity({
         initial: init,
         saveFn: async draft => await updateContentEntity({
@@ -95,6 +108,23 @@ export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
                                    })}/>
                     </div>
                     <div>
+                        <Label>状态</Label>
+                        <p className="text-xl">
+                            <If condition={draft.contentPublishedEN === draft.contentDraftEN && draft.contentPublishedZH === draft.contentDraftZH}>
+                                已发布
+                            </If>
+
+                            <If condition={draft.contentPublishedEN == null && draft.contentPublishedZH == null}>
+                                草稿
+                            </If>
+
+                            <If condition={(draft.contentPublishedEN !== draft.contentDraftEN || draft.contentPublishedZH !== draft.contentDraftZH) &&
+                                draft.contentPublishedEN != null && draft.contentPublishedZH != null}>
+                                有更新未发布
+                            </If>
+                        </p>
+                    </div>
+                    <div>
                         <Label>创建用户</Label>
                         <p className="text-xl">{draft.creator.name}</p>
                     </div>
@@ -111,7 +141,42 @@ export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
                 </div>
             </ModalBody>
             <ModalFooter>
-                <Button pill color="blue" disabled={loading} onClick={() => setShowMetadata(false)}>确认</Button>
+                <Button pill color="alternative"
+                        onClick={() => router.push(`/studio/pages/${draft.id}/preview?lang=${inEnglish ? 'en' : 'zh'}`)}>预览页面</Button>
+
+                <If condition={draft.contentPublishedEN != null || draft.contentPublishedZH != null}>
+                    <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                        if (!unpublishConfirm) {
+                            setUnpublishConfirm(true)
+                            return
+                        }
+                        setLoadingAdditional(true)
+                        await unpublishContentEntity(draft.id)
+                        setLoadingAdditional(false)
+                        await refresh()
+                        setUnpublishConfirm(false)
+                        setDraft({ // Somehow refreshing doesn't work so we update the state locally
+                            ...draft,
+                            titlePublishedEN: null,
+                            titlePublishedZH: null,
+                            contentPublishedEN: null,
+                            contentPublishedZH: null
+                        })
+                        router.refresh()
+                    }}>
+                        {unpublishConfirm ? '确认撤回?' : '撤回发布'}
+                    </Button>
+                </If>
+                <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                    if (!deleteConfirm) {
+                        setDeleteConfirm(true)
+                        return
+                    }
+                    setLoadingAdditional(true)
+                    await deleteContentEntity(draft.id)
+                    setLoadingAdditional(false)
+                    router.push('/studio/pages')
+                }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
             </ModalFooter>
         </Modal>
 
@@ -139,7 +204,8 @@ export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
                     <Button pill color="alternative"
                             onClick={switchLanguage}>切换到{inEnglish ? '中文' : '英文'}</Button>
                     <Button pill color="alternative" onClick={() => setShowMetadata(true)}>页面信息</Button>
-                    <Button pill color="alternative">审核与发布</Button>
+                    <Button pill color="alternative"
+                            onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
                     <Button pill color="blue" disabled={!hasChanges || loading} onClick={save}>保存更改</Button>
                 </>
             }}

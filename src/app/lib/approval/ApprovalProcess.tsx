@@ -17,12 +17,12 @@ import { HiCloudUpload } from 'react-icons/hi'
 import { useEffect, useState } from 'react'
 import { getMyUser } from '@/app/login/login-actions'
 import { useRouter } from 'next/navigation'
-import { Alignable, isAligned } from '@/app/lib/data-types'
+import { HydratedContentEntity, isAligned } from '@/app/lib/data-types'
 
 export default function ApprovalProcess({ entityType, entityId, entity, doAlign }: {
     entityType: EntityType,
     entityId: number,
-    entity: Alignable,
+    entity: HydratedContentEntity,
     doAlign: () => Promise<void>
 }) {
     const [ user, setUser ] = useState<User | null>(null)
@@ -49,7 +49,9 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
     }
 
     return <div className="p-8">
-        <h2 className="text-2xl font-bold mb-5">审核与发布流程</h2>
+        <h2 className="text-2xl font-bold mb-5">
+            审核与发布流程<If condition={entityType === EntityType.page}>: "{entity.titleDraftZH}" 页面</If>
+        </h2>
         <Timeline>
             <TimelineItem>
                 <TimelinePoint icon={HiPencil}/>
@@ -58,6 +60,14 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                     <TimelineBody>
                         由撰稿员完成内容编写。
                     </TimelineBody>
+                    <If condition={entityType === EntityType.page}>
+                        <div className="flex gap-3">
+                            <Button pill color="blue"
+                                    onClick={() => router.push(`/studio/pages/${entityId}/preview`)}>查看预览</Button>
+                            <Button pill color="alternative"
+                                    onClick={() => router.push(`/studio/pages/${entityId}/editor`)}>返回编辑器</Button>
+                        </div>
+                    </If>
                 </TimelineContent>
             </TimelineItem>
             <TimelineItem>

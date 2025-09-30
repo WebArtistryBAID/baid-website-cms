@@ -32,7 +32,7 @@ export default function LockOverridePrompt({ entityType, entityId, userId }: {
                     userId
                 })
                 setLoading(false)
-                router.push(entityType === EntityType.page ? `/studio/pages/editor/${entityId}?token=${lock.token}` : `/studio/editor/${entityId}?token=${lock.token}`)
+                router.push(entityType === EntityType.page ? `/studio/pages/${entityId}/editor?token=${lock.token}` : `/studio/editor/${entityId}?token=${lock.token}`)
             }}>覆盖并继续</Button>
             <Button disabled={loading} pill color="alternative" onClick={() => router.push('/studio')}>
                 取消

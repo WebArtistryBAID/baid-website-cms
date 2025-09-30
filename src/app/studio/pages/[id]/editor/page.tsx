@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/login/login-actions'
 import { tryAcquireLock } from '@/app/lib/lock/lock-typicals'
 import { getContentEntity } from '@/app/studio/editor/entity-actions'
-import PageEditor from '@/app/studio/pages/editor/[id]/PageEditor'
+import PageEditor from '@/app/studio/pages/[id]/editor/PageEditor'
 
 export default async function StudioPageEditor({ params, searchParams }: {
     params: Promise<{ id: string }>,
