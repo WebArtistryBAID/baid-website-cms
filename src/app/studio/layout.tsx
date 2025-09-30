@@ -18,7 +18,7 @@ import { ROLES_TRANSLATIONS } from '@/app/lib/common-translations'
 import {
     HiBookmarkSquare,
     HiChartPie,
-    HiNewspaper,
+    HiNewspaper, HiPencil,
     HiPhoto, HiPresentationChartBar,
     HiPuzzlePiece,
     HiShare,
@@ -71,6 +71,14 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
 
                                 <SidebarItem as={Link} href="/studio/shared/projects" icon={HiPresentationChartBar}>
                                     学生项目
+                                </SidebarItem>
+
+                                <SidebarItem as={Link} href="/studio/shared/course" icon={HiPencil}>
+                                    课程
+                                </SidebarItem>
+
+                                <SidebarItem as={Link} href="/studio/shared/faculty" icon={HiUser}>
+                                    教师
                                 </SidebarItem>
                             </SidebarCollapse>
                             <If condition={myUser?.roles.includes(Role.admin)}>

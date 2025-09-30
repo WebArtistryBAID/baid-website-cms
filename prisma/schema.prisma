@@ -19,9 +19,14 @@ model User {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
-  ownedPages  Page[]
-  ownedPosts  Post[]
-  ownedImages Image[]
+  ownedPages      Page[]
+  ownedPosts      Post[]
+  ownedImages     Image[]
+  ownedClubs      ClubContent[]
+  ownedActivities ActivityContent[]
+  ownedProjects   ProjectContent[]
+  ownedCourses    CourseContent[]
+  ownedFaculties  FacultyContent[]
 }
 
 enum Role {
@@ -122,6 +127,111 @@ model Post {
   updatedAt             DateTime @updatedAt
 }
 
+model ClubContent {
+  id                    Int      @id @default(autoincrement())
+  titlePublishedEN      String?
+  titlePublishedZH      String?
+  titleDraftEN          String
+  titleDraftZH          String
+  slug                  String   @unique
+  contentPublishedEN    String? // Markdown
+  contentPublishedZH    String? // Markdown
+  contentDraftEN        String // Markdown
+  contentDraftZH        String // Markdown
+  coverImagePublished   Image?   @relation("linkedClubsPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId Int?
+  coverImageDraft       Image?   @relation("linkedClubsDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId     Int?
+  creatorId             Int
+  creator               User     @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ActivityContent {
+  id                    Int      @id @default(autoincrement())
+  titlePublishedEN      String?
+  titlePublishedZH      String?
+  titleDraftEN          String
+  titleDraftZH          String
+  slug                  String   @unique
+  contentPublishedEN    String? // Markdown
+  contentPublishedZH    String? // Markdown
+  contentDraftEN        String // Markdown
+  contentDraftZH        String // Markdown
+  coverImagePublished   Image?   @relation("linkedActivitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId Int?
+  coverImageDraft       Image?   @relation("linkedActivitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId     Int?
+  creatorId             Int
+  creator               User     @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model ProjectContent {
+  id                    Int      @id @default(autoincrement())
+  titlePublishedEN      String?
+  titlePublishedZH      String?
+  titleDraftEN          String
+  titleDraftZH          String
+  slug                  String   @unique
+  contentPublishedEN    String? // Markdown
+  contentPublishedZH    String? // Markdown
+  contentDraftEN        String // Markdown
+  contentDraftZH        String // Markdown
+  coverImagePublished   Image?   @relation("linkedProjectsPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId Int?
+  coverImageDraft       Image?   @relation("linkedProjectsDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId     Int?
+  creatorId             Int
+  creator               User     @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model CourseContent {
+  id                    Int      @id @default(autoincrement())
+  titlePublishedEN      String?
+  titlePublishedZH      String?
+  titleDraftEN          String
+  titleDraftZH          String
+  slug                  String   @unique
+  contentPublishedEN    String? // Markdown
+  contentPublishedZH    String? // Markdown
+  contentDraftEN        String // Markdown
+  contentDraftZH        String // Markdown
+  coverImagePublished   Image?   @relation("linkedCoursesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId Int?
+  coverImageDraft       Image?   @relation("linkedCoursesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId     Int?
+  creatorId             Int
+  creator               User     @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model FacultyContent {
+  id                    Int      @id @default(autoincrement())
+  titlePublishedEN      String?
+  titlePublishedZH      String?
+  titleDraftEN          String
+  titleDraftZH          String
+  slug                  String   @unique
+  contentPublishedEN    String? // Markdown
+  contentPublishedZH    String? // Markdown
+  contentDraftEN        String // Markdown
+  contentDraftZH        String // Markdown
+  coverImagePublished   Image?   @relation("linkedFacultiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId Int?
+  coverImageDraft       Image?   @relation("linkedFacultiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId     Int?
+  creatorId             Int
+  creator               User     @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
 model Image {
   id         Int      @id @default(autoincrement())
   sha1       String   @unique
@@ -134,8 +244,18 @@ model Image {
   uploaderId Int?
   createdAt  DateTime @default(now())
 
-  linkedPostsDraft Post[] @relation("linkedPostsDraft")
-  linkedPostsPub   Post[] @relation("linkedPostsPub")
+  linkedPostsDraft      Post[]            @relation("linkedPostsDraft")
+  linkedPostsPub        Post[]            @relation("linkedPostsPub")
+  linkedClubsDraft      ClubContent[]     @relation("linkedClubsDraft")
+  linkedClubsPub        ClubContent[]     @relation("linkedClubsPub")
+  linkedActivitiesDraft ActivityContent[] @relation("linkedActivitiesDraft")
+  linkedActivitiesPub   ActivityContent[] @relation("linkedActivitiesPub")
+  linkedProjectsDraft   ProjectContent[]  @relation("linkedProjectsDraft")
+  linkedProjectsPub     ProjectContent[]  @relation("linkedProjectsPub")
+  linkedCoursesDraft    CourseContent[]   @relation("linkedCoursesDraft")
+  linkedCoursesPub      CourseContent[]   @relation("linkedCoursesPub")
+  linkedFacultiesDraft  FacultyContent[]  @relation("linkedFacultiesDraft")
+  linkedFacultiesPub    FacultyContent[]  @relation("linkedFacultiesPub")
 }
 
 model Approval {

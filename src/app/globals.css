@@ -63,6 +63,14 @@ article p {
     @apply mb-3;
 }
 
+article h2 {
+    @apply font-bold;
+}
+
+article h3 {
+    @apply font-bold;
+}
+
 article img {
     @apply rounded-lg text-center max-w-96 mx-auto mb-3;
 }
