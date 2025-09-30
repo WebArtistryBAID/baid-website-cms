@@ -40,7 +40,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
     return <>
         <div
             className="sm:hidden absolute w-screen h-screen z-50 top-0 left-0 bg-white dark:bg-gray-700 p-5 flex justify-center items-center flex-col">
-            <p className="text-center">请在大屏幕设备上使用 Studio。</p>
+            <p className="text-center">请在大屏幕设备上使用 Helium Studio。</p>
         </div>
 
         <div className="h-screen flex">

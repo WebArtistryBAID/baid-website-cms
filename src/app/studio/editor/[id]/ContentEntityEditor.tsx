@@ -102,8 +102,6 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
     })
     useSaveShortcut(true, save)
 
-    // = Confirm actions
-
     // = Locking
     useEntityLock({
         entityType: init.type,
@@ -215,7 +213,7 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
                         <div className="flex mb-3 gap-3">
                             <Button pill color="blue" disabled={!hasChanges || loading}
                                     onClick={save}>保存更改</Button>
-                            <Button pill color="alternative" disabled={hasChanges} onClick={switchLanguage}>
+                            <Button pill color="alternative" onClick={switchLanguage}>
                                 <If condition={inEnglish}>
                                     切换到中文
                                 </If>
@@ -271,7 +269,7 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
                             </button>
                         </p>
 
-                        <p className="font-bold secondary text-sm">更新时间</p>
+                        <p className="font-bold secondary text-sm">最新更改时间</p>
                         <p className="mb-3">{post.updatedAt.toLocaleString()}</p>
 
                         <p className="font-bold secondary text-sm">封面</p>
@@ -320,7 +318,7 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
                 </div>
             </TabItem>
             <TabItem title="预览" icon={HiSearch}>
-                <Button pill color="alternative" className="mb-5" disabled={hasChanges} onClick={switchLanguage}>
+                <Button pill color="alternative" className="mb-5" onClick={switchLanguage}>
                     <If condition={inEnglish}>
                         切换到中文
                     </If>

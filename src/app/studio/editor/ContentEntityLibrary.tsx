@@ -78,7 +78,7 @@ export default function ContentEntityLibrary({ init, title, type }: {
                     const post = await createContentEntity(type, postTitleEN, postTitleZH)
                     setLoading(false)
                     setShowCreate(false)
-                    router.push(`/studio/editor/${post.id}`)
+                    router.push(type === EntityType.page ? `/studio/pages/editor/${post.id}` : `/studio/editor/${post.id}`)
                 }}>创建</Button>
                 <Button disabled={loading} pill color="alternative" onClick={() => setShowCreate(false)}>
                     取消
@@ -170,7 +170,7 @@ export default function ContentEntityLibrary({ init, title, type }: {
                 </div>
                 <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                     {page.items.filter(post => post.slug !== 'temporary-slug').map(post => <Link
-                        href={`/studio/editor/${post.id}`}
+                        href={post.type === EntityType.page ? `/studio/pages/editor/${post.id}` : `/studio/editor/${post.id}`}
                         className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                         key={post.id}>
                         <If condition={post.coverImageDraft != null}>

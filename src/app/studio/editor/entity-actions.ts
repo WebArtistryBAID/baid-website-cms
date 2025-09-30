@@ -129,8 +129,16 @@ export async function createContentEntity(type: EntityType, titleEN: string, tit
             titleDraftEN: titleEN,
             titleDraftZH: titleZH,
             slug: titleEN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-            contentDraftEN: '',
-            contentDraftZH: '',
+            contentDraftEN: type === EntityType.page ? JSON.stringify({
+                content: [],
+                root: { props: { title: titleEN } },
+                zones: {}
+            }) : '',
+            contentDraftZH: type === EntityType.page ? JSON.stringify({
+                content: [],
+                root: { props: { title: titleZH } },
+                zones: {}
+            }) : '',
             contentPublishedEN: null,
             contentPublishedZH: null,
             creatorId: user.id

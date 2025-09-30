@@ -19,7 +19,6 @@ model User {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
-  ownedPages    Page[]
   ownedEntities ContentEntity[]
   ownedImages   Image[]
 }
@@ -52,16 +51,8 @@ enum UserAuditLogType {
   adminApproveEntity
   adminPublishEntity
 
-  writerCreatePage
-  writerEditPage
-  editorApprovePage
-  adminApprovePage
-  adminPublishPage
-
   unpublishEntity
-  unpublishPage
   deleteEntity
-  deletePage
 
   uploadImage
   deleteImage
@@ -86,42 +77,27 @@ model UserAuditLog {
   values String[]
 }
 
-model Page {
-  id                 Int      @id @default(autoincrement())
-  name               String
-  // Special slugs: /editor (for editor list), /posts/yyyy/MM/dd/title (for individual posts)
-  slug               String   @unique
-  contentPublishedEN String? // Puck editor content
-  contentPublishedZH String? // Puck editor content
-  contentDraftEN     String // Puck editor content
-  contentDraftZH     String // Puck editor content
-  creatorId          Int
-  creator            User     @relation(fields: [creatorId], references: [id])
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-}
-
 model ContentEntity {
-  id                  Int         @id @default(autoincrement())
-  type                EntityType
+  id                    Int          @id @default(autoincrement())
+  type                  EntityType
   titlePublishedEN      String?
   titlePublishedZH      String?
   titleDraftEN          String
   titleDraftZH          String
-  slug                String      @unique
-  contentPublishedEN    String? // Markdown
-  contentPublishedZH    String? // Markdown
-  contentDraftEN        String // Markdown
-  contentDraftZH        String // Markdown
-  coverImagePublished Image?      @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  slug                  String       @unique
+  contentPublishedEN    String? // Markdown OR Puck data
+  contentPublishedZH    String? // Markdown OR Puck data
+  contentDraftEN        String // Markdown OR Puck data
+  contentDraftZH        String // Markdown OR Puck data
+  coverImagePublished   Image?       @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
   coverImagePublishedId Int?
-  coverImageDraft     Image?      @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraft       Image?       @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
   coverImageDraftId     Int?
   creatorId             Int
-  creator             User        @relation(fields: [creatorId], references: [id])
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
-  locks               EntityLock[]
+  creator               User         @relation(fields: [creatorId], references: [id])
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  locks                 EntityLock[]
 }
 
 model Image {
@@ -160,12 +136,12 @@ model ApprovalConfig {
 }
 
 model EntityLock {
-  id       Int           @id @default(autoincrement())
+  id         Int           @id @default(autoincrement())
   entityType EntityType
   entityId   Int
-  entity   ContentEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  entity     ContentEntity @relation(fields: [entityId], references: [id], onDelete: Cascade)
   lockedBy   Int
-  lockedAt DateTime      @default(now())
+  lockedAt   DateTime      @default(now())
   token      String
 
   @@unique([entityType, entityId])
