@@ -26,6 +26,9 @@ import SimpleMarkdownEditor from '@/app/studio/posts/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
+import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
+import MediaPicker from '@/app/studio/media/MediaPicker'
+import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 
 export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }: {
     initPost: HydratedPost,
@@ -42,65 +45,17 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
     const [ showSlugForm, setShowSlugForm ] = useState(false)
     const [ showDateForm, setShowDateForm ] = useState(false)
     const [ mediaLibraryContent, setMediaLibraryContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
-    const [ cachedImages, setCachedImages ] = useState<Map<number, Image>>(new Map())
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ markdownContent, setMarkdownContent ] = useState(post.contentDraftZH)
-    const [ previewContent, setPreviewContent ] = useState('')
     const [ hasChanges, setHasChanges ] = useState(false)
     const [ inEnglish, setInEnglish ] = useState(false)
     const router = useRouter()
 
-    // = MEDIA LIBRARY PARSING
-    // Parse [IMAGE: ID] placeholders, fetch/cached images, and update preview
-    const extractImageIds = (md: string): number[] => {
-        const ids = new Set<number>()
-        const re = /\[IMAGE:\s*(\d+)\s*\]/g
-        let match: RegExpExecArray | null
-        while ((match = re.exec(md)) !== null) {
-            ids.add(Number(match[1]))
-        }
-        return Array.from(ids)
-    }
-    // Helper to escape ] in alt text for markdown image syntax
-    const escapeAlt = (s: string) => (s ?? '').replace(/]/g, '\\]')
-
-    useEffect(() => {
-        (async () => {
-            const md = markdownContent ?? ''
-            const ids = extractImageIds(md)
-
-            // Start from current cache
-            const working = new Map(cachedImages)
-
-            // Fetch any images not yet cached
-            const missing = ids.filter(id => !working.has(id))
-            if (missing.length > 0) {
-                const fetched = await Promise.all(missing.map(id => getImage(id)))
-                fetched.forEach(img => {
-                    if (img) {
-                        working.set(img.id, img)
-                    }
-                })
-                // Only update state if we actually added something new
-                if (missing.length > 0) {
-                    setCachedImages(working)
-                }
-            }
-
-            // Replace placeholders with rendered image markdown for preview
-            // NOTE: Using standard Markdown image syntax ![alt](url) so it renders in preview.
-            const replaced = md.replace(/\[IMAGE:\s*(\d+)\s*\]/g, (_m, idStr: string) => {
-                const id = Number(idStr)
-                const image = working.get(id)
-                if (!image) return _m // leave placeholder if not yet loaded
-                const alt = escapeAlt(image.altText ?? '')
-                return `![${alt}](${uploadPrefix}/${image.sha1}.webp)`
-            })
-            setPreviewContent(replaced)
-        })()
-    }, [ markdownContent ])
-
+    const { previewContent } = useImagePlaceholders({
+        markdown: markdownContent,
+        uploadPrefix
+    })
 
     // = Get media library data
     useEffect(() => {
@@ -284,34 +239,11 @@ export default function PostEditor({ initPost, userId, lockToken, uploadPrefix }
             </ModalFooter>
         </Modal>
 
-        <Modal show={showMediaLibrary} size="5xl" onClose={() => setShowMediaLibrary(false)} className="relative">
-            <ModalHeader className="border-none absolute z-50 right-0"/>
-            <MediaLibrary init={mediaLibraryContent} pickMode={true} onPick={image => {
-                setShowMediaLibrary(false)
-                setPost({
-                    ...post,
-                    coverImageDraft: image
-                });
-                (async () => {
-                    setMediaLibraryContent(await getImages(0))
-                })()
-            }}/>
-        </Modal>
-
-        <Modal show={showLockBroken} size="md" popup onClose={() => router.push('/studio/posts')}>
-            <ModalHeader/>
-            <ModalBody>
-                <div className="space-y-6">
-                    <h3 className="text-xl font-bold">其他用户正在编辑文章</h3>
-                    <p className="text-sm">另一名用户中断了您的编辑。您的编辑未保存。</p>
-                </div>
-            </ModalBody>
-            <ModalFooter>
-                <Button pill color="blue" onClick={() => {
-                    router.push('/studio/posts')
-                }}>退出</Button>
-            </ModalFooter>
-        </Modal>
+        <LockBrokenPrompt show={showLockBroken} returnUri="/studio/posts"/>
+        <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} onPick={image => {
+            setPost({ ...post, coverImageDraft: image })
+            setShowMediaLibrary(false)
+        }}/>
 
         <Tabs aria-label="文章编辑器选项卡" variant="default">
             <TabItem active title="内容" icon={HiNewspaper}>
