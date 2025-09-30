@@ -111,7 +111,7 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
                     <If condition={page.pages < 1}>
                         <div className="flex flex-col justify-center items-center">
                             <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
-                            <p className="mb-3">暂时没有图片。</p>
+                            <p className="mb-3">暂时没有图片</p>
                             <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
                         </div>
                     </If>

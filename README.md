@@ -34,24 +34,11 @@ To run in development:
 
 ## Contribution
 
-To contribute, simply open a pull request.
+Contribution is accepted from Beijing Academy students. All contributions are owned by Beijing Academy.
 
 ## License
 
-```
-    BAID website.
-    Copyright (C) 2025  Lin & Team WebArtistry
+All rights reserved unless otherwise stated. Refer to `LICENSE` for details.
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <https://www.gnu.org/licenses/>.
-```
+"Beijing Academy," "BAID," "Better Me, Better World," and the Beijing Academy logo are legally protected and may not be
+used without official authorization.
