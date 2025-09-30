@@ -3,11 +3,12 @@
 import { Paginated, SimplifiedPost } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
-import { createPost, getPosts } from '@/app/studio/posts/post-actions'
+import { checkWeChatWorkerStatus, createPost, createPostFromWeChat, getPosts } from '@/app/studio/posts/post-actions'
 import { Button, Label, Modal, ModalBody, ModalFooter, ModalHeader, Pagination, TextInput } from 'flowbite-react'
 import If from '@/app/lib/If'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { WeChatWorkerStatus } from '@/app/studio/posts/post-types'
 
 export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> }) {
     const [ page, setPage ] = useState<Paginated<SimplifiedPost>>(init)
@@ -15,6 +16,9 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
     const [ showCreate, setShowCreate ] = useState(false)
     const [ postTitleEN, setPostTitleEN ] = useState('')
     const [ postTitleZH, setPostTitleZH ] = useState('')
+    const [ showWeChatLink, setShowWeChatLink ] = useState(false)
+    const [ wechatLink, setWeChatLink ] = useState('')
+    const [ wechatStatus, setWeChatStatus ] = useState<WeChatWorkerStatus>(WeChatWorkerStatus.idle)
     const [ loading, setLoading ] = useState(false)
     const [ uploadServePath, setUploadServePath ] = useState<string>('')
 
@@ -23,6 +27,7 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
     useEffect(() => {
         (async () => {
             setUploadServePath(await getUploadServePath())
+            setWeChatStatus(await checkWeChatWorkerStatus())
 
             if (page.page !== currentPage) {
                 setPage(await getPosts(currentPage))
@@ -71,7 +76,56 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
             </ModalFooter>
         </Modal>
 
+        <Modal show={showWeChatLink} size="md" popup onClose={() => setShowWeChatLink(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold">同步微信公众号文章</h3>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="wechat-link">链接</Label>
+                        </div>
+                        <TextInput id="wechat-link" value={wechatLink} placeholder="https://mp.weixin.qq.com/"
+                                   onChange={e => setWeChatLink(e.currentTarget.value)}
+                                   required/>
+                    </div>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button disabled={loading} pill color="blue" onClick={async () => {
+                    if (!wechatLink) return
+                    try {
+                        const url = new URL(wechatLink)
+                        if (url.hostname !== 'mp.weixin.qq.com') {
+                            return
+                        }
+                    } catch {
+                        return
+                    }
+                    await createPostFromWeChat(wechatLink, null)
+                    setWeChatStatus(WeChatWorkerStatus.download)
+                    setShowWeChatLink(false)
+                }}>创建</Button>
+                <Button disabled={loading} pill color="alternative" onClick={() => setShowWeChatLink(false)}>
+                    取消
+                </Button>
+            </ModalFooter>
+        </Modal>
+
         <div className="p-8">
+            <Button pill className="mb-5" disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                    onClick={() => setShowWeChatLink(true)}>
+                {{
+                    idle: '同步微信公众号文章',
+                    download: '正在下载文章...',
+                    imageClassification: '正在分类图片...',
+                    sanitization: '正在清理内容...',
+                    translation: '正在翻译内容...',
+                    savingImages: '正在保存图片...',
+                    creatingPost: '正在创建文章...'
+                }[wechatStatus]}
+            </Button>
+
             <If condition={page.pages < 1}>
                 <div className="flex flex-col justify-center items-center">
                     <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
@@ -80,7 +134,7 @@ export default function PostLibrary({ init }: { init: Paginated<SimplifiedPost> 
                 </div>
             </If>
             <If condition={page.pages > 0}>
-                <div className="grid grid-cols-4 gap-4 mb-3">
+                <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                     {page.items.map(post => <Link href={`/studio/posts/${post.id}`}
                                                   className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                                                   key={post.id}>
