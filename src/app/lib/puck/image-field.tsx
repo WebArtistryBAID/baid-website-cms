@@ -1,4 +1,4 @@
-import MediaPickerPuck from '@/app/lib/components/MediaPickerPuck'
+import MediaPickerPuck from '@/app/lib/puck/MediaPickerPuck'
 import { Field } from '@measured/puck'
 
 export const RESOLVED_IMAGE_TYPE: Field = {

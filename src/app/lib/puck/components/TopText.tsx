@@ -1,4 +1,4 @@
-import ReadMore from '@/app/lib/components/ReadMore'
+import ReadMore from '@/app/lib/puck/components/ReadMore'
 import If from '@/app/lib/If'
 import { ComponentConfig } from '@measured/puck'
 
