@@ -12,18 +12,6 @@ a.inline {
     @apply text-blue-500 hover:underline;
 }
 
-h1 {
-    @apply text-3xl font-bold;
-}
-
-h2 {
-    @apply text-2xl;
-}
-
-h3 {
-    @apply text-xl;
-}
-
 .secondary {
     @apply text-gray-700;
 }

@@ -31,10 +31,33 @@ export async function getRecentEntities(type: EntityType): Promise<SimplifiedCon
     })
 }
 
-export async function getContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
-    if (query != null) {
-        await requireUser() // Don't allow people to break our server
+export async function getPublishedContentEntities(page: number, type: EntityType): Promise<Paginated<SimplifiedContentEntity>> {
+    const pages = Math.ceil(await prisma.contentEntity.count({
+        where: {
+            type,
+            contentPublishedEN: { not: null }
+        }
+    }) / PAGE_SIZE)
+    const posts = await prisma.contentEntity.findMany({
+        where: {
+            type,
+            contentPublishedEN: { not: null }
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: page * PAGE_SIZE,
+        take: PAGE_SIZE,
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    })
+    return {
+        items: posts,
+        page,
+        pages
+    }
+}
 
+export async function getContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
+    await requireUser()
+    if (query != null) {
         const q = query.trim()
         const maybeId = Number(q)
         const idParam = Number.isFinite(maybeId) ? maybeId : null
