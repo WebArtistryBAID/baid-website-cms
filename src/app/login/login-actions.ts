@@ -48,23 +48,23 @@ export async function getUser(id: number): Promise<User | null> {
     })
 }
 
-export async function getUsers(page: number, keyword: string): Promise<Paginated<User>> {
+export async function getUsers(page: number, keyword: string | undefined = undefined): Promise<Paginated<User>> {
     await requireUserWithRole(Role.admin)
     const pages = Math.ceil(await prisma.user.count({
-        where: {
+        where: keyword != null ? {
             OR: [
                 { name: { contains: keyword, mode: 'insensitive' } },
                 { pinyin: { contains: keyword, mode: 'insensitive' } }
             ]
-        }
+        } : undefined
     }) / 10)
     const users = await prisma.user.findMany({
-        where: {
+        where: keyword != null ? {
             OR: [
                 { name: { contains: keyword, mode: 'insensitive' } },
                 { pinyin: { contains: keyword, mode: 'insensitive' } }
             ]
-        },
+        } : undefined,
         orderBy: {
             pinyin: 'asc'
         },
@@ -76,4 +76,14 @@ export async function getUsers(page: number, keyword: string): Promise<Paginated
         page,
         pages
     }
+}
+
+export async function updateUserRoles(id: number, roles: Role[]): Promise<User> {
+    await requireUserWithRole(Role.admin)
+    return prisma.user.update({
+        where: { id },
+        data: {
+            roles
+        }
+    })
 }

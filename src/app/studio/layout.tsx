@@ -46,7 +46,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="h-screen flex">
-            <If condition={!pathName.includes('preview')}>
+            <If condition={!pathName.includes('preview') && !(pathName.includes('pages') && pathName.includes('editor'))}>
                 <div className="h-screen">
                     <Sidebar className="h-full relative">
                         <SidebarLogo href="/core" img="/assets/icon.png"><span
@@ -88,14 +88,14 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                     </SidebarItem>
                                 </SidebarCollapse>
                                 <If condition={myUser?.roles.includes(Role.admin)}>
-                                    <SidebarItem as={Link} href="/studio/inbox" icon={HiUsers}>
+                                    <SidebarItem as={Link} href="/studio/users" icon={HiUsers}>
                                         用户管理
                                     </SidebarItem>
                                 </If>
                             </SidebarItemGroup>
                         </SidebarItems>
                         <div className="mr-3 mb-3 absolute bottom-0">
-                            <Link href="/studio/settings"
+                            <Link href="/studio/"
                                   className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-100">
                                 <Badge icon={HiUser}/>
                                 <div>
