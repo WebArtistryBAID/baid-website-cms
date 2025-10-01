@@ -28,10 +28,6 @@ h3 {
     @apply text-gray-700;
 }
 
-.container {
-    @apply p-8 lg:p-16 xl:p-24 2xl:p-32;
-}
-
 .tr {
     @apply bg-white;
 }
@@ -46,6 +42,28 @@ b {
 
 i {
     @apply italic;
+}
+
+.container {
+    max-width: 77rem;
+    @apply mx-auto;
+}
+
+.fancy-link {
+    display: inline;
+    background: linear-gradient(to right, transparent, transparent), linear-gradient(to right, black, black);
+    background-size: 100% 0.1em, 0 0.1em;
+    background-position: 100% 100%, 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 300ms;
+}
+
+.fancy-link:hover, .fancy-link:focus, .group:hover .fancy-link {
+    background-size: 0 0.1em, 100% 0.1em;
+}
+
+.group-hover-scale {
+    @apply transform transition-transform duration-300 ease-in-out group-hover:scale-105;
 }
 
 article a {

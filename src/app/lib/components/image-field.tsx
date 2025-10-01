@@ -1,7 +1,25 @@
 import MediaPickerPuck from '@/app/lib/components/MediaPickerPuck'
 import { Field } from '@measured/puck'
 
-export default function imageTypeField(label: string | undefined = undefined): Field {
+export const RESOLVED_IMAGE_TYPE: Field = {
+    type: 'object',
+    objectFields: {
+        id: {
+            type: 'number'
+        },
+        sha1: {
+            type: 'text'
+        },
+        name: {
+            type: 'text'
+        },
+        altText: {
+            type: 'text'
+        }
+    }
+}
+
+export function imageTypeField(label: string | undefined = undefined): Field {
     return {
         type: 'custom',
         label,

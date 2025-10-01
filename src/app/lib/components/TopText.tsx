@@ -36,8 +36,7 @@ const TopTextConfig: ComponentConfig = {
         },
         to: {
             label: '链接',
-            type: 'text',
-            contentEditable: true
+            type: 'text'
         },
         linkText: {
             label: '链接文字',
