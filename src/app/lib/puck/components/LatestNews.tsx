@@ -103,6 +103,11 @@ const LatestNewsConfig: ComponentConfig = {
             visible: false
         }
     },
+    defaultProps: {
+        title: 'BAID Stories',
+        otherNewsText: '其他新闻',
+        readMoreText: '了解更多'
+    },
     resolveData: async ({ props }) => {
         const posts = await getPublishedContentEntities(0, EntityType.post)
         return {
