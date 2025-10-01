@@ -15,19 +15,19 @@ function BentoBox({
                       lifeText,
                       diversityText
                   }: {
-    title: string,
-    motto: string,
-    mottoText: string,
-    admissionsTitle: string,
-    admissionsText: string,
-    facultyTitle: string,
-    facultyText: string,
-    countriesTitle: string,
-    countriesText: string,
-    academicsTitle: string,
-    academicsText: string,
-    lifeText: string,
-    diversityText: string
+    title: string | null,
+    motto: string | null,
+    mottoText: string | null,
+    admissionsTitle: string | null,
+    admissionsText: string | null,
+    facultyTitle: string | null,
+    facultyText: string | null,
+    countriesTitle: string | null,
+    countriesText: string | null,
+    academicsTitle: string | null,
+    academicsText: string | null,
+    lifeText: string | null,
+    diversityText: string | null
 }) {
     return <div className="w-full p-3">
         <h2

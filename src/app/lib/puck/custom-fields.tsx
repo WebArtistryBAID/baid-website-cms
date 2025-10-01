@@ -3,6 +3,7 @@ import { Field, ObjectField } from '@measured/puck'
 
 export const RESOLVED_IMAGE_TYPE: ObjectField = {
     type: 'object',
+    visible: false,
     objectFields: {
         id: {
             type: 'number'
@@ -21,6 +22,7 @@ export const RESOLVED_IMAGE_TYPE: ObjectField = {
 
 export const RESOLVED_USER_TYPE: ObjectField = {
     type: 'object',
+    visible: false,
     objectFields: {
         id: {
             type: 'number'
@@ -36,6 +38,7 @@ export const RESOLVED_USER_TYPE: ObjectField = {
 
 export const RESOLVED_CONTENT_ENTITY_TYPE: ObjectField = {
     type: 'object',
+    visible: false,
     objectFields: {
         id: {
             type: 'number'

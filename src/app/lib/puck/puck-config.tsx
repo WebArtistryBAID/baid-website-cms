@@ -4,6 +4,7 @@ import HighlightsConfig from '@/app/lib/puck/components/Highlights'
 import ContainerConfig from '@/app/lib/puck/components/Container'
 import LatestNewsConfig from '@/app/lib/puck/components/LatestNews'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
+import QuoteConfig from '@/app/lib/puck/components/Quote'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -11,7 +12,8 @@ export const PUCK_CONFIG: Config = {
         TopText: TopTextConfig,
         Highlights: HighlightsConfig,
         LatestNews: LatestNewsConfig,
-        BentoBox: BentoBoxConfig
+        BentoBox: BentoBoxConfig,
+        Quote: QuoteConfig
     },
     categories: {
         layout: {
@@ -19,8 +21,8 @@ export const PUCK_CONFIG: Config = {
             components: [ 'Container' ]
         },
         sections: {
-            title: '区块',
-            components: [ 'TopText', 'Highlights', 'LatestNews', 'BentoBox' ]
+            title: '内容区块',
+            components: [ 'TopText', 'Highlights', 'LatestNews', 'BentoBox', 'Quote' ]
         }
     }
 }
