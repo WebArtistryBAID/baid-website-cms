@@ -30,10 +30,11 @@ function formatSize(kb: number): string {
     }
 }
 
-export default function MediaLibrary({ init, pickMode, onPick }: {
+export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     init: Paginated<Image>,
     pickMode?: boolean,
-    onPick?: (image: Image) => void
+    allowUnpick?: boolean,
+    onPick?: (image: Image | null) => void
 }) {
     const [ user, setUser ] = useState<User>()
     const [ page, setPage ] = useState<Paginated<Image>>(init)
@@ -122,6 +123,13 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
                             <If condition={user?.roles.includes(Role.writer)}>
                                 <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
                             </If>
+                            <If condition={allowUnpick}>
+                                <Button pill disabled={loading} color="alternative" className="mt-3" onClick={() => {
+                                    if (onPick != null) {
+                                        onPick(null)
+                                    }
+                                }}>取消选取</Button>
+                            </If>
                         </div>
                     </If>
                     <If condition={page.pages > 0}>
@@ -147,6 +155,14 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
                                 </div>
                                 <Pagination currentPage={currentPage + 1} onPageChange={p => setCurrentPage(p - 1)}
                                             totalPages={page.pages}/>
+                                <If condition={allowUnpick}>
+                                    <Button pill disabled={loading} color="alternative" className="mt-3"
+                                            onClick={() => {
+                                                if (onPick != null) {
+                                                    onPick(null)
+                                                }
+                                            }}>取消选取</Button>
+                                </If>
                             </div>
 
                             <div className="w-1/3">
@@ -170,11 +186,13 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
                                     <p className="mb-3">{selectedImage?.altText}</p>
 
                                     <If condition={pickMode}>
-                                        <Button pill disabled={loading} color="blue" className="mb-3" onClick={() => {
-                                            if (onPick != null) {
-                                                onPick(selectedImage!)
-                                            }
-                                        }}>选取</Button>
+                                        <div className="flex gap-3 mb-3">
+                                            <Button pill disabled={loading} color="blue" onClick={() => {
+                                                if (onPick != null) {
+                                                    onPick(selectedImage!)
+                                                }
+                                            }}>选取</Button>
+                                        </div>
                                     </If>
                                     <Button pill disabled={loading || !user?.roles.includes(Role.writer)} color="red"
                                             onClick={async () => {

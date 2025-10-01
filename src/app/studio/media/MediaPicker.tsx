@@ -9,10 +9,11 @@ import { getImages } from '@/app/studio/media/media-actions'
 type Props = {
     open: boolean
     onClose: () => void
-    onPick: (image: Image) => void
+    allowUnpick: boolean,
+    onPick: (image: Image | null) => void
 }
 
-export default function MediaPicker({ open, onClose, onPick }: Props) {
+export default function MediaPicker({ open, onClose, allowUnpick, onPick }: Props) {
     const [ content, setContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
 
     useEffect(() => {
@@ -30,6 +31,7 @@ export default function MediaPicker({ open, onClose, onPick }: Props) {
                 key={content.items.length ? `page-${content.page}-count-${content.items.length}` : 'empty'}
                 init={content}
                 pickMode={true}
+                allowUnpick={allowUnpick}
                 onPick={img => {
                     onPick(img)
                 }}

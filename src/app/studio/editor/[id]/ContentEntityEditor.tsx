@@ -192,15 +192,16 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         </Modal>
 
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio"/>
-        <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} onPick={image => {
-            setPost({ ...post, coverImageDraft: image, coverImageDraftId: image.id })
+        <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
+                     onPick={image => {
+                         setPost({ ...post, coverImageDraft: image!, coverImageDraftId: image!.id })
             setShowMediaLibrary(false)
         }}/>
 
         <Tabs aria-label="文章编辑器选项卡" variant="default">
             <TabItem active title="内容" icon={HiNewspaper}>
                 <div className="w-full flex gap-8">
-                    <div className="w-2/3">
+                    <div className="w-2/3 2xl:w-3/4">
                         <SimpleMarkdownEditor value={markdownContent} onChange={(content: string) => {
                             setMarkdownContent(content)
                             if (inEnglish) {
@@ -210,7 +211,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             }
                         }}/>
                     </div>
-                    <div className="w-1/3">
+                    <div className="w-1/3 2xl:w-1/4">
                         <div className="flex mb-3 gap-3">
                             <Button pill color="blue"
                                     disabled={!hasChanges || loading || !user.roles.includes(Role.writer)}

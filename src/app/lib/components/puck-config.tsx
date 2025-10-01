@@ -1,16 +1,8 @@
 import type { Config } from '@measured/puck'
+import TopTextConfig from '@/app/lib/components/TopText'
 
 export const PUCK_CONFIG: Config = {
     components: {
-        HeadingBlock: {
-            fields: {
-                children: {
-                    type: 'text'
-                }
-            },
-            render: ({ children }) => {
-                return <h1>{children}</h1>
-            }
-        }
+        TopText: TopTextConfig
     }
 }
