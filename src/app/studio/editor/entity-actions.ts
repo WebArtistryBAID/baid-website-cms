@@ -8,7 +8,7 @@ import {
     SIMPLIFIED_CONTENT_ENTITY_SELECT,
     SimplifiedContentEntity
 } from '@/app/lib/data-types'
-import { requireUserWithRole } from '@/app/login/login-actions'
+import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import fs from 'fs/promises'
 import path from 'path'
 import { spawn } from 'child_process'
@@ -22,10 +22,70 @@ const PAGE_SIZE = 24
 
 const prisma = new PrismaClient()
 
-export async function getContentEntities(page: number, type: EntityType): Promise<Paginated<SimplifiedContentEntity>> {
-    const pages = Math.ceil(await prisma.contentEntity.count({ where: { type } }) / PAGE_SIZE)
+export async function getContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
+    if (query != null) {
+        await requireUser() // Don't allow people to break our server
+
+        const q = query.trim()
+        const maybeId = Number(q)
+        const idParam = Number.isFinite(maybeId) ? maybeId : null
+        const limit = PAGE_SIZE
+        const offset = page * PAGE_SIZE
+
+        const rows: Array<{ id: number; rank: number | null; total: number }>
+            = await prisma.$queryRaw`
+            WITH t AS (SELECT ce.id,
+                              setweight(to_tsvector('simple', coalesce(ce."titleDraftEN", '')), 'A') ||
+                              setweight(to_tsvector('simple', coalesce(ce."titleDraftZH", '')), 'A') ||
+                              setweight(to_tsvector('simple', coalesce(ce."contentDraftEN", '')), 'B') ||
+                              setweight(to_tsvector('simple', coalesce(ce."contentDraftZH", '')), 'B') AS doc
+                       FROM "ContentEntity" ce
+                       WHERE ce."type" = ${type}::"EntityType"), m AS (
+            SELECT ce.id, ts_rank_cd(t.doc, websearch_to_tsquery('simple', ${q})) AS rank
+            FROM "ContentEntity" ce
+                JOIN t
+            ON t.id = ce.id
+                LEFT JOIN "User" u ON u.id = ce."creatorId"
+            WHERE ce."type" = ${type}::"EntityType"
+              AND (
+                t.doc @@ websearch_to_tsquery('simple'
+                , ${q})
+               OR ce."titleDraftEN" ILIKE '%' || ${q} || '%'
+               OR ce."titleDraftZH" ILIKE '%' || ${q} || '%'
+               OR ce."slug" ILIKE '%' || ${q} || '%'
+               OR (${idParam}:: int IS NOT NULL
+              AND ce.id = ${idParam}:: int)
+               OR (u."name" ILIKE '%' || ${q} || '%')
+                ))
+            SELECT id, rank, COUNT(*) OVER() AS total
+            FROM m
+            ORDER BY rank DESC NULLS LAST, id DESC
+                LIMIT ${limit}:: int
+            OFFSET ${offset}::int;`
+
+        const total = rows.length > 0 ? Number(rows[0].total) : 0
+        const pages = Math.ceil(total / PAGE_SIZE)
+        const ids = rows.map(r => r.id)
+
+        const itemsRaw = ids.length === 0 ? [] : await prisma.contentEntity.findMany({
+            where: { id: { in: ids } },
+            select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+        })
+        const rankMap = new Map(ids.map((id, i) => [ id, i ]))
+        const items = itemsRaw.sort((a, b) => (rankMap.get(a.id)! - rankMap.get(b.id)!))
+
+        return { items, page, pages }
+    }
+    // No-query
+    const pages = Math.ceil(await prisma.contentEntity.count({
+        where: {
+            type
+        }
+    }) / PAGE_SIZE)
     const posts = await prisma.contentEntity.findMany({
-        where: { type },
+        where: {
+            type
+        },
         orderBy: { createdAt: 'desc' },
         skip: page * PAGE_SIZE,
         take: PAGE_SIZE,

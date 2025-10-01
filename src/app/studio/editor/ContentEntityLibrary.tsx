@@ -26,6 +26,8 @@ export default function ContentEntityLibrary({ init, title, type }: {
     const [ showCreate, setShowCreate ] = useState(false)
     const [ postTitleEN, setPostTitleEN ] = useState('')
     const [ postTitleZH, setPostTitleZH ] = useState('')
+    const [ search, setSearch ] = useState('')
+    const [ debouncedSearch, setDebouncedSearch ] = useState('')
     const [ showWeChatLink, setShowWeChatLink ] = useState(false)
     const [ wechatLink, setWeChatLink ] = useState('')
     const [ wechatStatus, setWeChatStatus ] = useState<WeChatWorkerStatus>(WeChatWorkerStatus.idle)
@@ -35,15 +37,18 @@ export default function ContentEntityLibrary({ init, title, type }: {
     const router = useRouter()
 
     useEffect(() => {
+        const t = setTimeout(() => setDebouncedSearch(search), 300)
+        return () => clearTimeout(t)
+    }, [ search ])
+
+    useEffect(() => {
         (async () => {
             setUploadServePath(await getUploadServePath())
             setWeChatStatus(await checkWeChatWorkerStatus())
-
-            if (page.page !== currentPage) {
-                setPage(await getContentEntities(currentPage, type))
-            }
+            const res = await getContentEntities(currentPage, type, debouncedSearch || undefined)
+            setPage(res)
         })()
-    }, [ currentPage, page.page ])
+    }, [ currentPage, debouncedSearch, type ])
 
     return <>
         <Modal show={showCreate} size="md" popup onClose={() => setShowCreate(false)}>
@@ -125,49 +130,37 @@ export default function ContentEntityLibrary({ init, title, type }: {
         </Modal>
 
         <div className="p-8">
-            <If condition={page.pages < 1}>
-                <div className="flex flex-col justify-center items-center">
-                    <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
-                    <p className="mb-3">暂时没有{title}</p>
-                    <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>
-                        <If condition={type === EntityType.post}>手动</If>创建
+            <div className="flex gap-3 mb-1">
+                <If condition={type === EntityType.post}>
+                    <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                            onClick={() => setShowWeChatLink(true)}>
+                        {{
+                            idle: '同步微信公众号文章',
+                            download: '正在下载文章...',
+                            imageClassification: '正在分类图片...',
+                            sanitization: '正在清理内容...',
+                            translation: '正在翻译内容...',
+                            savingImages: '正在保存图片...',
+                            creatingPost: '正在创建文章...'
+                        }[wechatStatus]}
                     </Button>
-                    <If condition={type === EntityType.post}>
-                        <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
-                                onClick={() => setShowWeChatLink(true)}>
-                            {{
-                                idle: '同步微信公众号文章',
-                                download: '正在下载文章...',
-                                imageClassification: '正在分类图片...',
-                                sanitization: '正在清理内容...',
-                                translation: '正在翻译内容...',
-                                savingImages: '正在保存图片...',
-                                creatingPost: '正在创建文章...'
-                            }[wechatStatus]}
-                        </Button>
-                    </If>
-                </div>
-            </If>
+                </If>
+                <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>
+                    <If condition={type === EntityType.post}>手动</If>创建
+                </Button>
+            </div>
+            <div className="mb-5">
+                <TextInput
+                    className="max-w-sm"
+                    placeholder="搜索标题、作者及全文..."
+                    value={search}
+                    onChange={e => {
+                        setSearch(e.target.value)
+                        setCurrentPage(0)
+                    }}
+                />
+            </div>
             <If condition={page.pages > 0}>
-                <div className="flex gap-3 mb-5">
-                    <If condition={type === EntityType.post}>
-                        <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
-                                onClick={() => setShowWeChatLink(true)}>
-                            {{
-                                idle: '同步微信公众号文章',
-                                download: '正在下载文章...',
-                                imageClassification: '正在分类图片...',
-                                sanitization: '正在清理内容...',
-                                translation: '正在翻译内容...',
-                                savingImages: '正在保存图片...',
-                                creatingPost: '正在创建文章...'
-                            }[wechatStatus]}
-                        </Button>
-                    </If>
-                    <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>
-                        <If condition={type === EntityType.post}>手动</If>创建
-                    </Button>
-                </div>
                 <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                     {page.items.filter(post => post.slug !== 'temporary-slug').map(post => <Link
                         href={post.type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`}

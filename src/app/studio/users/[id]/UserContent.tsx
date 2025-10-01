@@ -19,7 +19,7 @@ export default function UserContent({ user }: { user: User }) {
 
     return <div className="p-16">
         <h1 className="text-2xl mb-8">{user.name}</h1>
-        <div className="bg-sky-50 rounded-3xl p-8 space-y-3 max-w-2xl">
+        <div className="bg-gray-50 rounded-3xl p-8 space-y-3 max-w-2xl">
             <div>
                 <p className="font-bold text-sm secondary">拼音</p>
                 <p className="text-xl">{user.pinyin}</p>
