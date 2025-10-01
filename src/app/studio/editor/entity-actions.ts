@@ -22,6 +22,15 @@ const PAGE_SIZE = 24
 
 const prisma = new PrismaClient()
 
+export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
+    return prisma.contentEntity.findMany({
+        where: { type },
+        orderBy: { updatedAt: 'desc' },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
+        take: 3
+    })
+}
+
 export async function getContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
     if (query != null) {
         await requireUser() // Don't allow people to break our server
