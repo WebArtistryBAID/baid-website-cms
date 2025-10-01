@@ -14,11 +14,12 @@ import If from '@/app/lib/If'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
-import { EntityType } from '@prisma/client'
+import { EntityType, Role, User } from '@prisma/client'
 
-export default function ContentEntityLibrary({ init, title, type }: {
+export default function ContentEntityLibrary({ init, title, user, type }: {
     init: Paginated<SimplifiedContentEntity>,
     title: string,
+    user: User,
     type: EntityType
 }) {
     const [ page, setPage ] = useState<Paginated<SimplifiedContentEntity>>(init)
@@ -132,7 +133,9 @@ export default function ContentEntityLibrary({ init, title, type }: {
         <div className="p-8">
             <div className="flex gap-3 mb-1">
                 <If condition={type === EntityType.post}>
-                    <Button pill disabled={wechatStatus !== WeChatWorkerStatus.idle} color="blue"
+                    <Button pill
+                            disabled={wechatStatus !== WeChatWorkerStatus.idle || !user.roles.includes(Role.writer)}
+                            color="blue"
                             onClick={() => setShowWeChatLink(true)}>
                         {{
                             idle: '同步微信公众号文章',
@@ -145,7 +148,8 @@ export default function ContentEntityLibrary({ init, title, type }: {
                         }[wechatStatus]}
                     </Button>
                 </If>
-                <Button pill color="blue" className="mb-3" onClick={() => setShowCreate(true)}>
+                <Button pill disabled={!user.roles.includes(Role.writer)} color="blue" className="mb-3"
+                        onClick={() => setShowCreate(true)}>
                     <If condition={type === EntityType.post}>手动</If>创建
                 </Button>
             </div>

@@ -15,11 +15,12 @@ import {
 } from 'flowbite-react'
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
-import { Image } from '@prisma/client'
+import { Image, Role, User } from '@prisma/client'
 import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
 import { Paginated } from '@/app/lib/data-types'
+import { getMyUser } from '@/app/login/login-actions'
 
 function formatSize(kb: number): string {
     if (kb < 1024) {
@@ -34,6 +35,7 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
     pickMode?: boolean,
     onPick?: (image: Image) => void
 }) {
+    const [ user, setUser ] = useState<User>()
     const [ page, setPage ] = useState<Paginated<Image>>(init)
     const [ loading, setLoading ] = useState(false)
     const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
@@ -49,8 +51,13 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
 
     useEffect(() => {
         (async () => {
+            setUser((await getMyUser())!)
             setUploadServePath(await getUploadServePath())
+        })()
+    }, [])
 
+    useEffect(() => {
+        (async () => {
             if (page.page !== currentPage) {
                 setPage(await getImages(currentPage))
             }
@@ -112,7 +119,9 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
                         <div className="flex flex-col justify-center items-center">
                             <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
                             <p className="mb-3">暂时没有图片</p>
-                            <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
+                            <If condition={user?.roles.includes(Role.writer)}>
+                                <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
+                            </If>
                         </div>
                     </If>
                     <If condition={page.pages > 0}>
@@ -167,17 +176,18 @@ export default function MediaLibrary({ init, pickMode, onPick }: {
                                             }
                                         }}>选取</Button>
                                     </If>
-                                    <Button pill disabled={loading} color="red" onClick={async () => {
-                                        if (deleteConfirm && selectedImage != null) {
-                                            setLoading(true)
-                                            await deleteImage(selectedImage.id)
-                                            setLoading(false)
-                                            setSelectedImage(null)
-                                            setPage(await getImages(currentPage))
-                                        } else {
-                                            setDeleteConfirm(true)
-                                        }
-                                    }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
+                                    <Button pill disabled={loading || !user?.roles.includes(Role.writer)} color="red"
+                                            onClick={async () => {
+                                                if (deleteConfirm && selectedImage != null) {
+                                                    setLoading(true)
+                                                    await deleteImage(selectedImage.id)
+                                                    setLoading(false)
+                                                    setSelectedImage(null)
+                                                    setPage(await getImages(currentPage))
+                                                } else {
+                                                    setDeleteConfirm(true)
+                                                }
+                                            }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
                                 </If>
                             </div>
                         </div>

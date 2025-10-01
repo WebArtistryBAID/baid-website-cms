@@ -155,7 +155,8 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                         <If condition={approvalsNames.editor.length >= (approvalsThreshold?.editor ?? 1) && approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1) &&
                             !isAligned(entity)}>
                             <p>内容已审核完成，可以发表。</p>
-                            <Button disabled={loading} pill color="blue" onClick={async () => {
+                            <Button disabled={loading || !user?.roles.includes(Role.admin)} pill color="blue"
+                                    onClick={async () => {
                                 if (!publishConfirm) {
                                     setPublishConfirm(true)
                                     return

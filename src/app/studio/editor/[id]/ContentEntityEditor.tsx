@@ -34,10 +34,11 @@ import {
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
+import { Role, User } from '@prisma/client'
 
-export default function ContentEntityEditor({ init, userId, lockToken, uploadPrefix }: {
+export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,
-    userId: number
+    user: User,
     lockToken: string,
     uploadPrefix: string
 }) {
@@ -106,7 +107,7 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
     useEntityLock({
         entityType: init.type,
         entityId: post.id,
-        userId,
+        userId: user.id,
         initialToken: lockToken,
         hasChanges,
         onLockLost: () => setShowLockBroken(true)
@@ -211,7 +212,8 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
                     </div>
                     <div className="w-1/3">
                         <div className="flex mb-3 gap-3">
-                            <Button pill color="blue" disabled={!hasChanges || loading}
+                            <Button pill color="blue"
+                                    disabled={!hasChanges || loading || !user.roles.includes(Role.writer)}
                                     onClick={save}>保存更改</Button>
                             <Button pill color="alternative" onClick={switchLanguage}>
                                 <If condition={inEnglish}>
@@ -289,7 +291,8 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
 
                         <div className="flex gap-3">
                             <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
-                                <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                                <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill
+                                        color="red" onClick={async () => {
                                     if (!unpublishConfirm) {
                                         setUnpublishConfirm(true)
                                         return
@@ -303,7 +306,8 @@ export default function ContentEntityEditor({ init, userId, lockToken, uploadPre
                                     {unpublishConfirm ? '确认撤回?' : '撤回发布'}
                                 </Button>
                             </If>
-                            <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                            <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red"
+                                    onClick={async () => {
                                 if (!deleteConfirm) {
                                     setDeleteConfirm(true)
                                     return

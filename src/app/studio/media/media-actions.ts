@@ -1,7 +1,7 @@
 'use server'
 
-import { Image, PrismaClient, UserAuditLogType } from '@prisma/client'
-import { requireUser } from '@/app/login/login-actions'
+import { Image, PrismaClient, Role, UserAuditLogType } from '@prisma/client'
+import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import sharp from 'sharp'
@@ -15,7 +15,6 @@ export async function getUploadServePath(): Promise<string> {
 }
 
 export async function getImage(id: number): Promise<Image | null> {
-    await requireUser()
     return prisma.image.findUnique({
         where: { id }
     })
@@ -69,7 +68,7 @@ export async function createImage(data: {
     altText: string
     sha1: string
 }): Promise<Image> {
-    const user = await requireUser()
+    const user = await requireUserWithRole(Role.writer)
     const metadata = await sharp(await fs.readFile(path.join(process.env.UPLOAD_PATH!, data.sha1 + '.webp'))).metadata()
 
     const image = await prisma.image.create({
@@ -94,7 +93,7 @@ export async function createImage(data: {
 }
 
 export async function deleteImage(id: number): Promise<void> {
-    const user = await requireUser()
+    const user = await requireUserWithRole(Role.writer)
     const image = await prisma.image.delete({
         where: { id }
     })
