@@ -25,11 +25,13 @@ import ProjectCategoryConfig from '@/app/lib/puck/components/ProjectCategoryConf
 import ParagraphConfig from '@/app/lib/puck/components/Paragraph'
 import HeadingConfig from '@/app/lib/puck/components/Heading'
 import SpacerConfig from '@/app/lib/puck/components/Spacer'
+import ButtonConfig from '@/app/lib/puck/components/ButtonWidget'
 
 export const PUCK_CONFIG: Config = {
     components: {
         ParagraphConfig,
         HeadingConfig,
+        ButtonConfig,
         ContainerConfig,
         SpacerConfig,
         TopTextConfig,
@@ -58,7 +60,7 @@ export const PUCK_CONFIG: Config = {
     categories: {
         foundational: {
             title: '基础',
-            components: [ 'ParagraphConfig', 'HeadingConfig' ]
+            components: [ 'ParagraphConfig', 'HeadingConfig', 'ButtonConfig' ]
         },
         layout: {
             title: '布局',
