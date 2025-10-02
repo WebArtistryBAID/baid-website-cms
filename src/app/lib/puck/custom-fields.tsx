@@ -1,5 +1,6 @@
 import MediaPickerPuck from '@/app/lib/puck/MediaPickerPuck'
 import { Field, ObjectField } from '@measured/puck'
+import ColorPickerPuck from '@/app/lib/puck/ColorPickerPuck'
 
 export const RESOLVED_IMAGE_TYPE: ObjectField = {
     type: 'object',
@@ -72,5 +73,14 @@ export function imageTypeField(label: string | undefined = undefined): Field {
         label,
         render: ({ name, onChange, value }) =>
             <MediaPickerPuck name={label ?? name} onChange={onChange} value={value}/>
+    }
+}
+
+export function colorTypeField(label: string | undefined = undefined): Field {
+    return {
+        type: 'custom',
+        label,
+        render: ({ name, onChange, value }) =>
+            <ColorPickerPuck name={label ?? name} onChange={onChange} value={value}/>
     }
 }

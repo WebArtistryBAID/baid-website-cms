@@ -8,6 +8,7 @@ import QuoteConfig from '@/app/lib/puck/components/Quote'
 import { InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
 import StatisticsConfig from '@/app/lib/puck/components/Statistics'
 import HorizontalTopTextConfig from '@/app/lib/puck/components/HorizontalTopText'
+import HeroConfig from '@/app/lib/puck/components/Hero'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -19,7 +20,8 @@ export const PUCK_CONFIG: Config = {
         QuoteConfig,
         InFocusProjectsConfig,
         StatisticsConfig,
-        HorizontalTopTextConfig
+        HorizontalTopTextConfig,
+        HeroConfig
     },
     categories: {
         layout: {
@@ -32,7 +34,7 @@ export const PUCK_CONFIG: Config = {
         },
         heroes: {
             title: '首屏',
-            components: [ 'InFocusProjectsConfig' ]
+            components: [ 'HeroConfig', 'InFocusProjectsConfig' ]
         }
     }
 }
