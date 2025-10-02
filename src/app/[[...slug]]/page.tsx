@@ -6,6 +6,7 @@ import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
 import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
 import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
+import { Metadata } from 'next'
 
 const PAGES = [
     { id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about' },
@@ -15,6 +16,30 @@ const PAGES = [
     { id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions' },
     { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news' }
 ]
+
+export async function generateMetadata({ params }: {
+    params: Promise<{ slug: string[] | undefined }>
+}): Promise<Metadata> {
+    const route = (await params).slug ?? []
+
+    if (route.length < 1 || (route[0] !== 'en' && route[0] !== 'zh')) {
+        return { title: 'Beijing Academy International Division' }
+    }
+
+    const language = route[0]
+    const newRoute = route.slice(1)
+    const slug = newRoute.length === 5 ? newRoute[4] : (newRoute.length === 0 ? '/' : newRoute.join('/'))
+    const entity = await getContentEntityBySlug(slug)
+    if (entity == null) {
+        return {
+            title: language === 'en' ? 'Not Found | Beijing Academy International Division' : '未找到 | 北京中学国际部'
+        }
+    }
+    return {
+        title: language === 'en' ? `${entity.titlePublishedEN} | Beijing Academy International Division` : `${entity.titlePublishedZH} | 北京中学国际部`
+    }
+}
+
 
 export default async function RouteHandler({ params }: { params: Promise<{ slug: string[] | undefined }> }) {
     const route = (await params).slug ?? []

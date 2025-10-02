@@ -5,7 +5,7 @@ import NextTopLoader from 'nextjs-toploader'
 import { ThemeInit } from '../../.flowbite-react/init'
 
 export const metadata: Metadata = {
-    title: 'Beijing Academy',
+    title: 'Beijing Academy International Division',
     description: 'Beijing Academy International Division (BAID) is a CIS-member international high school program in Beijing offering AP and Cambridge curricula.'
 }
 
