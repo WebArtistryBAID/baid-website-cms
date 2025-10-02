@@ -260,6 +260,8 @@ export async function createContentEntity(type: EntityType, titleEN: string, tit
 export async function updateContentEntity(data: {
     id: number
     slug: string | undefined
+    categoryEN: string | null | undefined,
+    categoryZH: string | null | undefined,
     createdAt: Date | undefined
     titleDraftEN: string | undefined
     titleDraftZH: string | undefined
@@ -273,6 +275,8 @@ export async function updateContentEntity(data: {
         data: {
             slug: data.slug,
             createdAt: data.createdAt,
+            categoryEN: data.categoryEN,
+            categoryZH: data.categoryZH,
             titleDraftEN: data.titleDraftEN,
             titleDraftZH: data.titleDraftZH,
             contentDraftEN: data.contentDraftEN,

@@ -48,6 +48,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ showTitleForm, setShowTitleForm ] = useState(false)
     const [ showSlugForm, setShowSlugForm ] = useState(false)
     const [ showDateForm, setShowDateForm ] = useState(false)
+    const [ showCategoryForm, setShowCategoryForm ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
@@ -84,6 +85,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             id: draft.id,
             titleDraftEN: draft.titleDraftEN,
             titleDraftZH: draft.titleDraftZH,
+            categoryEN: draft.categoryEN,
+            categoryZH: draft.categoryZH,
             slug: draft.slug,
             contentDraftEN: draft.contentDraftEN,
             contentDraftZH: draft.contentDraftZH,
@@ -94,6 +97,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         compareKeys: [
             'titleDraftEN',
             'titleDraftZH',
+            'categoryEN',
+            'categoryZH',
             'slug',
             'coverImageDraft.id',
             'contentDraftEN',
@@ -147,6 +152,41 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             </ModalBody>
             <ModalFooter>
                 <Button pill color="blue" disabled={loading} onClick={() => setShowTitleForm(false)}>确认</Button>
+            </ModalFooter>
+        </Modal>
+
+        <Modal show={showCategoryForm} size="md" popup onClose={() => setShowCategoryForm(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold">更改类别</h3>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="category-zh">类别 (中文)</Label>
+                        </div>
+                        <TextInput id="category-zh" value={post.categoryZH ?? ''} placeholder="世界因我更美好"
+                                   onChange={e => setPost({
+                                       ...post,
+                                       categoryZH: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="category-en">类别 (英文)</Label>
+                        </div>
+                        <TextInput id="category-en" value={post.categoryEN ?? ''} placeholder="Better Me, Better World"
+                                   onChange={e => setPost({
+                                       ...post,
+                                       categoryEN: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                    <p className="text-sm">英文类别请使用正确大小写，如 AP Courses</p>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={loading} onClick={() => setShowCategoryForm(false)}>确认</Button>
             </ModalFooter>
         </Modal>
 
@@ -242,6 +282,16 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
                              duration-100 rounded-full flex justify-center items-center" aria-label="编辑链接位置"
                                     onClick={() => setShowSlugForm(true)}>
+                                <HiPencil className="text-white text-xs"/>
+                            </button>
+                        </p>
+
+                        <p className="font-bold secondary text-sm">类别</p>
+                        <p className="mb-3 flex items-center gap-3">
+                            {post.categoryZH} / {post.categoryEN}
+                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
+                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑类别"
+                                    onClick={() => setShowCategoryForm(true)}>
                                 <HiPencil className="text-white text-xs"/>
                             </button>
                         </p>

@@ -46,7 +46,8 @@ export interface SimplifiedContentEntity {
     titleDraftEN: string
     titleDraftZH: string
     slug: string
-    category: string
+    categoryEN: string | null
+    categoryZH: string | null
     coverImagePublished: Image | null
     coverImageDraft: Image | null
     creator: SimplifiedUser
@@ -62,7 +63,8 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
     titleDraftEN: true,
     titleDraftZH: true,
     slug: true,
-    category: true,
+    categoryEN: true,
+    categoryZH: true,
     coverImagePublished: true,
     coverImageDraft: true,
     creator: {
@@ -80,7 +82,8 @@ export interface HydratedContentEntity {
     titleDraftEN: string
     titleDraftZH: string
     slug: string
-    category: string
+    categoryEN: string | null
+    categoryZH: string | null
     contentPublishedEN: string | null
     contentPublishedZH: string | null
     contentDraftEN: string
@@ -103,7 +106,8 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     titleDraftEN: true,
     titleDraftZH: true,
     slug: true,
-    category: true,
+    categoryEN: true,
+    categoryZH: true,
     contentPublishedEN: true,
     contentPublishedZH: true,
     contentDraftEN: true,
