@@ -14,6 +14,7 @@ import AccreditationsConfig from '@/app/lib/puck/components/AccreditationsConfig
 import AlumniConfig from '@/app/lib/puck/components/AlumniConfig'
 import CoursesConfig from '@/app/lib/puck/components/CoursesConfig'
 import CurriculumConfig from '@/app/lib/puck/components/CurriculumConfig'
+import SpecialtiesConfig from '@/app/lib/puck/components/SpecialtiesConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -31,7 +32,8 @@ export const PUCK_CONFIG: Config = {
         AccreditationsConfig,
         AlumniConfig,
         CoursesConfig,
-        CurriculumConfig
+        CurriculumConfig,
+        SpecialtiesConfig
     },
     categories: {
         layout: {
@@ -42,7 +44,8 @@ export const PUCK_CONFIG: Config = {
             title: '内容区块',
             components: [ 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig', 'BentoBoxConfig',
                 'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
-                'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig' ]
+                'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig',
+                'SpecialtiesConfig' ]
         },
         heroes: {
             title: '首屏',
