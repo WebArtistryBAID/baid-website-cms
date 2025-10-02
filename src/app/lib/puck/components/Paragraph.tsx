@@ -3,8 +3,16 @@ import { colorTypeField } from '@/app/lib/puck/custom-fields'
 import { Property } from 'csstype'
 import TextAlign = Property.TextAlign
 
-function Paragraph({ text, size, color, align }: { text: string, size: string, color: string, align: string }) {
-    return <p className={`text-${size}`} style={{ color, textAlign: align as (TextAlign | undefined) }}>{text}</p>
+function Paragraph({ text, size, color, align, bold, italic }: {
+    text: string,
+    size: string,
+    color: string,
+    align: string,
+    bold: boolean,
+    italic: boolean
+}) {
+    return <p className={`text-${size} ${bold ? 'font-bold' : ''} ${italic ? 'italic' : ''}`}
+              style={{ color, textAlign: align as (TextAlign | undefined) }}>{text}</p>
 }
 
 const ParagraphConfig: ComponentConfig = {
@@ -41,14 +49,33 @@ const ParagraphConfig: ComponentConfig = {
                 { label: '两端对齐', value: 'justify' }
             ]
         },
+        bold: {
+            label: '加粗',
+            type: 'radio',
+            options: [
+                { label: '启用', value: true },
+                { label: '关闭', value: false }
+            ]
+        },
+        italic: {
+            label: '斜体',
+            type: 'radio',
+            options: [
+                { label: '启用', value: true },
+                { label: '关闭', value: false }
+            ]
+        },
         color: colorTypeField('颜色')
     },
     defaultProps: {
         size: 'base',
         align: 'left',
+        bold: false,
+        italic: false,
         color: '#000000'
     },
-    render: ({ text, size, align, color }) => <Paragraph text={text} size={size} align={align} color={color}/>
+    render: ({ text, size, align, bold, italic, color }) => <Paragraph text={text} size={size} bold={bold}
+                                                                       italic={italic} align={align} color={color}/>
 }
 
 export default ParagraphConfig

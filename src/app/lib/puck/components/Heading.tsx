@@ -4,20 +4,22 @@ import React from 'react'
 import { Property } from 'csstype'
 import TextAlign = Property.TextAlign
 
-function Heading({ level, text, size, color, align }: {
+function Heading({ level, text, size, color, align, bold, italic }: {
     level: number,
     text: string,
     size: string,
     color: string,
-    align: string
+    align: string,
+    bold: boolean,
+    italic: boolean
 }) {
     const Tag = `h${level}` as keyof React.JSX.IntrinsicElements
-    return <Tag className={`text-${size} font-bold`}
+    return <Tag className={`text-${size} ${bold ? 'font-bold' : ''} ${italic ? 'italic' : ''}`}
                 style={{ color, textAlign: align as (TextAlign | undefined) }}>{text}</Tag>
 }
 
 const HeadingConfig: ComponentConfig = {
-    label: '段落',
+    label: '标题',
     fields: {
         text: {
             label: '文字',
@@ -52,6 +54,22 @@ const HeadingConfig: ComponentConfig = {
                 { label: '8x 大', value: '7xl' }
             ]
         },
+        bold: {
+            label: '加粗',
+            type: 'radio',
+            options: [
+                { label: '启用', value: true },
+                { label: '关闭', value: false }
+            ]
+        },
+        italic: {
+            label: '斜体',
+            type: 'radio',
+            options: [
+                { label: '启用', value: true },
+                { label: '关闭', value: false }
+            ]
+        },
         align: {
             label: '对齐',
             type: 'select',
@@ -66,12 +84,15 @@ const HeadingConfig: ComponentConfig = {
     },
     defaultProps: {
         level: 1,
-        size: 'xl',
+        size: '4xl',
         align: 'left',
+        bold: true,
+        italic: false,
         color: '#000000'
     },
-    render: ({ text, level, size, color, align }) => <Heading text={text} level={level} size={size} color={color}
-                                                              align={align}/>
+    render: ({ text, level, size, color, align, bold, italic }) => <Heading text={text} level={level} size={size}
+                                                                            color={color}
+                                                                            align={align} bold={bold} italic={italic}/>
 }
 
 export default HeadingConfig

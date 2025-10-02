@@ -19,6 +19,19 @@ export default function ColorPickerPuck({ name, onChange, value }:
         </div>
 
         <div className="flex gap-3">
+            <button
+                className={`h-8 w-8 border border-black rounded-full ${value === '#ffffff' ? 'ring-2 ring-blue-500' : ''}`}
+                style={{ backgroundColor: 'white' }}
+                onClick={() => onChange('#ffffff')}>
+                <span className="sr-only">白色</span>
+            </button>
+
+            <button className={`h-8 w-8 rounded-full ${value === '#000000' ? 'ring-2 ring-blue-500' : ''}`}
+                    style={{ backgroundColor: 'black' }}
+                    onClick={() => onChange('#000000')}>
+                <span className="sr-only">黑色</span>
+            </button>
+
             <button className={`h-8 w-8 rounded-full ${value === '#9f0612' ? 'ring-2 ring-blue-500' : ''}`}
                     style={{ backgroundColor: '#9f0612' }}
                     onClick={() => onChange('#9f0612')}>
@@ -32,7 +45,7 @@ export default function ColorPickerPuck({ name, onChange, value }:
             </button>
 
             <button
-                className={`h-8 w-8 border border-black rounded-full ${(value !== '#103c74' && value !== '#9f0612') ? 'ring-2 ring-blue-500' : ''}`}
+                className={`h-8 w-8 border border-black rounded-full ${![ '#9f0612', '#103c74', '#ffffff', '#000000' ].includes(value ?? '') ? 'ring-2 ring-blue-500' : ''}`}
                 style={{ backgroundColor: currentColor }}
                 onClick={() => inputRef.current?.showPicker()}>
                 <input type="color" ref={inputRef} value={currentColor} className="w-1 h-1"

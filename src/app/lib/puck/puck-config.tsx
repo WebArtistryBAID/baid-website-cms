@@ -24,12 +24,14 @@ import FeaturedProjectsConfig from '@/app/lib/puck/components/FeaturedProjectsCo
 import ProjectCategoryConfig from '@/app/lib/puck/components/ProjectCategoryConfig'
 import ParagraphConfig from '@/app/lib/puck/components/Paragraph'
 import HeadingConfig from '@/app/lib/puck/components/Heading'
+import SpacerConfig from '@/app/lib/puck/components/Spacer'
 
 export const PUCK_CONFIG: Config = {
     components: {
         ParagraphConfig,
         HeadingConfig,
         ContainerConfig,
+        SpacerConfig,
         TopTextConfig,
         HighlightsConfig,
         LatestNewsConfig,
@@ -60,7 +62,7 @@ export const PUCK_CONFIG: Config = {
         },
         layout: {
             title: '布局',
-            components: [ 'ContainerConfig' ]
+            components: [ 'ContainerConfig', 'SpacerConfig' ]
         },
         sections: {
             title: '内容区块',
