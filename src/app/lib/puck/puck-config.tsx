@@ -6,29 +6,31 @@ import LatestNewsConfig from '@/app/lib/puck/components/LatestNews'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
 import QuoteConfig from '@/app/lib/puck/components/Quote'
 import { InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
+import StatisticsConfig from '@/app/lib/puck/components/Statistics'
 
 export const PUCK_CONFIG: Config = {
     components: {
-        Container: ContainerConfig,
-        TopText: TopTextConfig,
-        Highlights: HighlightsConfig,
-        LatestNews: LatestNewsConfig,
-        BentoBox: BentoBoxConfig,
-        Quote: QuoteConfig,
-        InFocusProjects: InFocusProjectsConfig
+        ContainerConfig,
+        TopTextConfig,
+        HighlightsConfig,
+        LatestNewsConfig,
+        BentoBoxConfig,
+        QuoteConfig,
+        InFocusProjectsConfig,
+        StatisticsConfig
     },
     categories: {
         layout: {
             title: '布局',
-            components: [ 'Container' ]
+            components: [ 'ContainerConfig' ]
         },
         sections: {
             title: '内容区块',
-            components: [ 'TopText', 'Highlights', 'LatestNews', 'BentoBox', 'Quote' ]
+            components: [ 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig', 'BentoBoxConfig', 'QuoteConfig', 'StatisticsConfig' ]
         },
         heroes: {
             title: '首屏',
-            components: [ 'InFocusProjects' ]
+            components: [ 'InFocusProjectsConfig' ]
         }
     }
 }

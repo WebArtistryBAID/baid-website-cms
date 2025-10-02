@@ -42,8 +42,8 @@ export default function InFocusProjects({
             setScrollY(window.scrollY || window.pageYOffset || 0)
         }
         onScroll()
-        window.addEventListener('scroll', onScroll, { passive: true })
-        return () => window.removeEventListener('scroll', onScroll)
+        window.addEventListener('scroll', onScroll, true)
+        return () => window.removeEventListener('scroll', onScroll, true)
     }, [])
 
     return <>
@@ -138,7 +138,7 @@ export default function InFocusProjects({
                             <h2 className="text-2xl mb-4">
                                 {(projects[1].description ?? '').split(/<1>|<\/1>/).map((part, i) =>
                                     i % 2 === 1 ?
-                                        <span key={i} className="text--400 font-bold">{part}</span> :
+                                        <span key={i} className="text-orange-400 font-bold">{part}</span> :
                                         <span key={i}>{part}</span>
                                 )}
                             </h2>

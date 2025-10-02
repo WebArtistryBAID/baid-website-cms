@@ -8,16 +8,18 @@ function TopText({ title, text, to = null, linkText = null }: {
     to: string | null,
     linkText: string | null
 }) {
-    return <div className="max-w-xl">
-        <h2 className="text-3xl font-serif font-bold">
-            {title}
-        </h2>
-        <p className="text-xl">{text}</p>
-        <If condition={to != null}>
-            <div className="flex justify-end mt-5">
-                <ReadMore text={linkText ?? '了解更多'} to={to ?? ''}/>
-            </div>
-        </If>
+    return <div className="container">
+        <div className="max-w-xl">
+            <h2 className="text-3xl font-serif font-bold">
+                {title}
+            </h2>
+            <p className="text-xl">{text}</p>
+            <If condition={to != null}>
+                <div className="flex justify-end mt-5">
+                    <ReadMore text={linkText ?? '了解更多'} to={to ?? ''}/>
+                </div>
+            </If>
+        </div>
     </div>
 }
 
