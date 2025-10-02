@@ -46,7 +46,8 @@ const StatisticsConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text'
+            type: 'text',
+            contentEditable: true
         },
         content: {
             label: '内容',
@@ -54,11 +55,13 @@ const StatisticsConfig: ComponentConfig = {
             arrayFields: {
                 name: {
                     label: '名称',
-                    type: 'text'
+                    type: 'text',
+                    contentEditable: true
                 },
                 value: {
                     label: '数值',
-                    type: 'text'
+                    type: 'text',
+                    contentEditable: true
                 }
             }
         }
