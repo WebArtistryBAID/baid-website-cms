@@ -29,6 +29,11 @@ export async function generateMetadata({ params }: {
     const language = route[0]
     const newRoute = route.slice(1)
     const slug = newRoute.length === 5 ? newRoute[4] : (newRoute.length === 0 ? '/' : newRoute.join('/'))
+    if (slug === '/') {
+        return {
+            title: language === 'en' ? 'Beijing Academy International Division' : '北京中学国际部'
+        }
+    }
     const entity = await getContentEntityBySlug(slug)
     if (entity == null) {
         return {
