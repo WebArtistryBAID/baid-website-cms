@@ -26,6 +26,7 @@ import ParagraphConfig from '@/app/lib/puck/components/Paragraph'
 import HeadingConfig from '@/app/lib/puck/components/Heading'
 import SpacerConfig from '@/app/lib/puck/components/Spacer'
 import ButtonConfig from '@/app/lib/puck/components/ButtonWidget'
+import NewsListConfig from '@/app/lib/puck/components/NewsListConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -55,7 +56,8 @@ export const PUCK_CONFIG: Config = {
         ActivitiesConfig,
         ClubsConfig,
         FeaturedProjectsConfig,
-        ProjectCategoryConfig
+        ProjectCategoryConfig,
+        NewsListConfig
     },
     categories: {
         foundational: {
@@ -72,7 +74,8 @@ export const PUCK_CONFIG: Config = {
                 'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
                 'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig',
                 'SpecialtiesConfig', 'ContactsConfig', 'ApplicationStepsConfig', 'AnonymousQuoteConfig',
-                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig' ]
+                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig',
+                'NewsListConfig' ]
         },
         heroes: {
             title: '首屏',
