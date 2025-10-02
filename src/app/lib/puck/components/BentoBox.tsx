@@ -166,13 +166,13 @@ function BentoBox({
                             >
                                 <stop
                                     offset="60%"
-                                    stop-color="white"
-                                    stop-opacity="1"
+                                    stopColor="white"
+                                    stopOpacity="1"
                                 />
                                 <stop
                                     offset="100%"
-                                    stop-color="white"
-                                    stop-opacity="0"
+                                    stopColor="white"
+                                    stopOpacity="0"
                                 />
                             </linearGradient>
                             <mask
