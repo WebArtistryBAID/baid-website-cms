@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
 import { ComponentConfig } from '@measured/puck'
+import { colorTypeField } from '@/app/lib/puck/custom-fields'
 
-function Container({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, children }:
+function Container({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, backgroundColor, children }:
                    {
                        ml?: string,
                        mr?: string,
@@ -12,6 +13,7 @@ function Container({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, children }:
                        pt?: string,
                        pb?: string,
                        contentWidth?: boolean,
+                       backgroundColor?: string,
                        children: ReactNode
                    }) {
     return <div className={contentWidth ? 'container' : ''}
@@ -23,7 +25,8 @@ function Container({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, children }:
                     paddingLeft: pl,
                     paddingRight: pr,
                     paddingTop: pt,
-                    paddingBottom: pb
+                    paddingBottom: pb,
+                    backgroundColor
                 }}>
         {children}
     </div>
@@ -72,6 +75,7 @@ const ContainerConfig: ComponentConfig = {
             label: '下内边距',
             type: 'text'
         },
+        backgroundColor: colorTypeField('背景颜色'),
         children: {
             type: 'slot'
         }
@@ -79,9 +83,9 @@ const ContainerConfig: ComponentConfig = {
     defaultProps: {
         contentWidth: true
     },
-    render: ({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, children: Children }) =>
+    render: ({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, backgroundColor, children: Children }) =>
         <Container ml={ml} mr={mr} mt={mt} mb={mb} pl={pl} pr={pr} pt={pt} pb={pb}
-                   contentWidth={contentWidth}>
+                   backgroundColor={backgroundColor} contentWidth={contentWidth}>
             <Children/>
         </Container>
 }

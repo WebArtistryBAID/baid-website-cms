@@ -22,9 +22,13 @@ import ActivitiesConfig from '@/app/lib/puck/components/Activities'
 import ClubsConfig from '@/app/lib/puck/components/ClubsConfig'
 import FeaturedProjectsConfig from '@/app/lib/puck/components/FeaturedProjectsConfig'
 import ProjectCategoryConfig from '@/app/lib/puck/components/ProjectCategoryConfig'
+import ParagraphConfig from '@/app/lib/puck/components/Paragraph'
+import HeadingConfig from '@/app/lib/puck/components/Heading'
 
 export const PUCK_CONFIG: Config = {
     components: {
+        ParagraphConfig,
+        HeadingConfig,
         ContainerConfig,
         TopTextConfig,
         HighlightsConfig,
@@ -50,6 +54,10 @@ export const PUCK_CONFIG: Config = {
         ProjectCategoryConfig
     },
     categories: {
+        foundational: {
+            title: '基础',
+            components: [ 'ParagraphConfig', 'HeadingConfig' ]
+        },
         layout: {
             title: '布局',
             components: [ 'ContainerConfig' ]
