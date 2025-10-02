@@ -11,6 +11,13 @@
     @apply scroll-smooth font-sans;
 }
 
+:root {
+    --standard-blue: #103c74;
+    --standard-red: oklch(39.6% 0.141 25.723);
+    --swiper-theme-color: #83050e !important;
+    --shrink-limit: 750px;
+}
+
 a.inline {
     @apply text-blue-500 hover:underline;
 }
