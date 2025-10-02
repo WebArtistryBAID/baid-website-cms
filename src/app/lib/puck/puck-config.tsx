@@ -17,6 +17,7 @@ import CurriculumConfig from '@/app/lib/puck/components/CurriculumConfig'
 import SpecialtiesConfig from '@/app/lib/puck/components/SpecialtiesConfig'
 import ContactsConfig from '@/app/lib/puck/components/Contacts'
 import ApplicationStepsConfig from '@/app/lib/puck/components/ApplicationSteps'
+import AnonymousQuoteConfig from '@/app/lib/puck/components/AnonymousQuote'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -37,7 +38,8 @@ export const PUCK_CONFIG: Config = {
         CurriculumConfig,
         SpecialtiesConfig,
         ContactsConfig,
-        ApplicationStepsConfig
+        ApplicationStepsConfig,
+        AnonymousQuoteConfig
     },
     categories: {
         layout: {
@@ -49,7 +51,7 @@ export const PUCK_CONFIG: Config = {
             components: [ 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig', 'BentoBoxConfig',
                 'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
                 'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig',
-                'SpecialtiesConfig', 'ContactsConfig', 'ApplicationStepsConfig' ]
+                'SpecialtiesConfig', 'ContactsConfig', 'ApplicationStepsConfig', 'AnonymousQuoteConfig' ]
         },
         heroes: {
             title: '首屏',
