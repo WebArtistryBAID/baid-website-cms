@@ -8,7 +8,7 @@ import QuoteConfig from '@/app/lib/puck/components/Quote'
 import { InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
 import StatisticsConfig from '@/app/lib/puck/components/Statistics'
 import HorizontalTopTextConfig from '@/app/lib/puck/components/HorizontalTopText'
-import HeroConfig from '@/app/lib/puck/components/Hero'
+import HeroConfig from '@/app/lib/puck/components/HeroConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
