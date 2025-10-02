@@ -79,28 +79,30 @@ export async function getPublishedProjectsByCategory(page: number, category: str
     }
 }
 
-export async function getPublishedProjectsByCategoriesForInit(lang: 'en' | 'zh'): Promise<{
-    category: string,
+export async function getPublishedProjectsByCategoriesForInit(): Promise<{
+    categoryEN: string,
+    categoryZH: string,
     projects: Paginated<SimplifiedContentEntity>
 }[]> {
     const categories = await prisma.contentEntity.findMany({
         where: {
             type: EntityType.project,
             contentPublishedEN: { not: null },
-            categoryEN: lang === 'en' ? { not: null } : undefined,
-            categoryZH: lang === 'zh' ? { not: null } : undefined
+            categoryEN: { not: null },
+            categoryZH: { not: null }
         },
         distinct: [ 'categoryEN' ],
         select: {
-            categoryEN: lang === 'en',
-            categoryZH: lang === 'zh'
+            categoryEN: true,
+            categoryZH: true
         }
     })
-    const result: { category: string; projects: Paginated<SimplifiedContentEntity> }[] = []
+    const result: { categoryEN: string; categoryZH: string; projects: Paginated<SimplifiedContentEntity> }[] = []
     for (const cat of categories) {
         result.push({
-            category: lang === 'en' ? cat.categoryEN! : cat.categoryZH!,
-            projects: await getPublishedProjectsByCategory(0, lang === 'en' ? cat.categoryEN! : cat.categoryZH!)
+            categoryEN: cat.categoryEN!,
+            categoryZH: cat.categoryZH!,
+            projects: await getPublishedProjectsByCategory(0, cat.categoryEN!)
         })
     }
     return result

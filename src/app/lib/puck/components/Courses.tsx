@@ -1,14 +1,16 @@
 'use client'
 
-import { SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, SimplifiedContentEntity } from '@/app/lib/data-types'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
+import Link from 'next/link'
 
-// TODO Add link and language change
 export default function Courses({ title, courses }: {
     title: string | undefined,
     courses: { [courseName: string]: (SimplifiedContentEntity | undefined)[] | undefined }
 }) {
+    const language = useLanguage()
     const tabNames = useMemo(() => Object.keys(courses || {}), [ courses ])
     const [ selected, setSelected ] = useState<string | null>(null)
 
@@ -69,7 +71,7 @@ export default function Courses({ title, courses }: {
                             ].join(' ')}
                             onClick={() => change(name)}
                         >
-                            {name}
+                            {language === 'en' ? courses[name]?.[0]?.categoryEN ?? name : courses[name]?.[0]?.categoryZH ?? name}
                         </button>
                     )
                 })}
@@ -86,13 +88,12 @@ export default function Courses({ title, courses }: {
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-5 mb-5 transition-opacity duration-200"
                 >
                     {currentItems?.map((item) => (
-                        <p
+                        <Link href={getContentEntityURI(item?.createdAt, item?.slug)}
                             key={item?.id ?? Math.random()}
                             role="listitem"
-                            className="text-2xl border-l-4 border-red-800 pl-3 col-span-1 md:col-span-2"
-                        >
-                            {item?.titlePublishedZH ?? ''}
-                        </p>
+                              className="block text-2xl border-l-4 border-red-800 pl-3 col-span-1 md:col-span-2">
+                            {language === 'en' ? (item?.titlePublishedEN ?? '') : (item?.titlePublishedZH ?? '')}
+                        </Link>
                     ))}
                 </div>
             )}

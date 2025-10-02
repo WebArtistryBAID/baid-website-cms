@@ -6,6 +6,8 @@ import ReadMore from '@/app/lib/puck/components/ReadMore'
 import If from '@/app/lib/If'
 import { motion } from 'motion/react'
 import { InFocusProject } from '@/app/lib/puck/components/InFocusConfigs'
+import { getContentEntityURI } from '@/app/lib/data-types'
+import Link from 'next/link'
 
 export default function InFocusProjects({
                                             heroBg,
@@ -123,7 +125,7 @@ export default function InFocusProjects({
                                     color="white"
                                     iconColor="#ffd230"
                                     text={projects[0].linkText ?? ''}
-                                    to="/todo"
+                                    to={getContentEntityURI(projects[0].project?.createdAt, projects[0].project?.slug)}
                                 />
                             </div>
                         </>}
@@ -146,7 +148,7 @@ export default function InFocusProjects({
                                 color="white"
                                 iconColor="#ff8904"
                                 text={projects[1].linkText ?? ''}
-                                to="/todo"
+                                to={getContentEntityURI(projects[1].project?.createdAt, projects[1].project?.slug)}
                             />
                         </div>
                         <div
@@ -181,7 +183,7 @@ export default function InFocusProjects({
                                 color="white"
                                 iconColor="#ff6467"
                                 text={projects[2].linkText ?? ''}
-                                to="/projects/test"
+                                to={getContentEntityURI(projects[2].project?.createdAt, projects[2].project?.slug)}
                             />
                         </div>
                     </>}
@@ -189,7 +191,8 @@ export default function InFocusProjects({
                     <div className="col-span-1 md:col-span-2 p-8 text-white">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {projects.length > 3 && <>
-                                <div className="group">
+                                <Link className="group block"
+                                      to={getContentEntityURI(projects[3].project?.createdAt, projects[3].project?.slug)}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[3].discipline}
                                     </p>
@@ -203,11 +206,12 @@ export default function InFocusProjects({
                                     <p>
                                         {projects[3].description}
                                     </p>
-                                </div>
+                                </Link>
                             </>}
 
                             {projects.length > 4 && <>
-                                <div className="group">
+                                <Link className="group block"
+                                      to={getContentEntityURI(projects[4].project?.createdAt, projects[4].project?.slug)}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[4].discipline}
                                     </p>
@@ -221,11 +225,12 @@ export default function InFocusProjects({
                                     <p>
                                         {projects[4].description}
                                     </p>
-                                </div>
+                                </Link>
                             </>}
 
                             {projects.length > 5 && <>
-                                <div className="group">
+                                <Link className="group block"
+                                      to={getContentEntityURI(projects[5].project?.createdAt, projects[5].project?.slug)}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[5].discipline}
                                     </p>
@@ -239,7 +244,7 @@ export default function InFocusProjects({
                                     <p>
                                         {projects[5].description}
                                     </p>
-                                </div>
+                                </Link>
                             </>}
                         </div>
                     </div>

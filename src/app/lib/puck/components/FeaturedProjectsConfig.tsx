@@ -4,6 +4,7 @@ import { EntityType } from '@prisma/client'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import FeaturedProjects from '@/app/lib/puck/components/FeaturedProjects'
+import { getContentEntityURI } from '@/app/lib/data-types'
 
 const FeaturedProjectsConfig: ComponentConfig = {
     label: '精选项目',
@@ -72,7 +73,7 @@ const FeaturedProjectsConfig: ComponentConfig = {
                     return {
                         quote: item.quote,
                         name: item.name,
-                        link: `/todo/${item.project.id}`, // TODO: replace with real link
+                        link: getContentEntityURI(item.createdAt, item.slug),
                         linkText: item.linkText,
                         image: item.image == null ? null : await getImage(parseInt(item.image))
                     }

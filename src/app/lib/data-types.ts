@@ -29,7 +29,10 @@ export function isAligned(item: ContentEntity) {
     )
 }
 
-export function getURI(createdAt: Date, slug: string): string {
+export function getContentEntityURI(createdAt: Date | null | undefined, slug: string | null | undefined): string {
+    if (createdAt == null || slug == null) {
+        return ''
+    }
     const year = createdAt.getFullYear()
     const month = (createdAt.getMonth() + 1).toString().padStart(2, '0')
     const day = createdAt.getDate().toString().padStart(2, '0')

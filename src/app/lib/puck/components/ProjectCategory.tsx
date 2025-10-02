@@ -1,31 +1,34 @@
 'use client'
 
-import { Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedProjectsByCategory } from '@/app/studio/editor/entity-actions'
 import Link from 'next/link'
 import If from '@/app/lib/If'
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
-export default function ProjectCategory({ title, init, uploadPrefix }: {
-    title: string,
+export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }: {
+    titleEN: string,
+    titleZH: string,
     init: Paginated<SimplifiedContentEntity>,
     uploadPrefix: string
 }) {
+    const language = useLanguage()
     const [ page, setPage ] = useState<Paginated<SimplifiedContentEntity>>(init)
     const [ currentPage, setCurrentPage ] = useState(0)
 
     useEffect(() => {
         (async () => {
-            setPage(await getPublishedProjectsByCategory(currentPage, title))
+            setPage(await getPublishedProjectsByCategory(currentPage, titleEN))
         })()
-    }, [ currentPage, title ])
+    }, [ currentPage, titleEN ])
 
     return <section className="container my-24 section">
-        <h2 className="text-3xl font-bold mb-5">{title}</h2>
+        <h2 className="text-3xl font-bold mb-5">{language === 'en' ? titleEN : titleZH}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
             {page.items.map(project => <Link
-                href="/todo"
+                href={getContentEntityURI(project.createdAt, project.slug)}
                 className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
                 key={project.id}>
                 <If condition={project.coverImagePublished != null}>
@@ -39,8 +42,8 @@ export default function ProjectCategory({ title, init, uploadPrefix }: {
                 </If>
 
                 <div className="p-8">
-                    <p className="text-xl font-bold mb-1 fancy-link">{project.titlePublishedZH}</p>
-                    <p className="text-sm secondary">{project.shortContentPublishedZH}</p>
+                    <p className="text-xl font-bold mb-1 fancy-link">{language === 'en' ? project.titlePublishedEN : project.titlePublishedZH}</p>
+                    <p className="text-sm secondary">{language === 'en' ? project.shortContentPublishedEN : project.shortContentPublishedZH}</p>
                 </div>
             </Link>)}
         </div>

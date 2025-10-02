@@ -1,18 +1,20 @@
 'use client'
 
-import { Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
 import Link from 'next/link'
 import If from '@/app/lib/If'
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 export default function Clubs({ title, init, uploadPrefix }: {
     title: string,
     init: Paginated<SimplifiedContentEntity>,
     uploadPrefix: string
 }) {
+    const language = useLanguage()
     const [ page, setPage ] = useState<Paginated<SimplifiedContentEntity>>(init)
     const [ currentPage, setCurrentPage ] = useState(0)
 
@@ -30,7 +32,7 @@ export default function Clubs({ title, init, uploadPrefix }: {
 
             <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                 {page.items.map(club => <Link
-                    href="/todo"
+                    href={getContentEntityURI(club.createdAt, club.slug)}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
                     key={club.id}>
                     <If condition={club.coverImagePublished != null}>
@@ -44,8 +46,8 @@ export default function Clubs({ title, init, uploadPrefix }: {
                     </If>
 
                     <div className="p-8">
-                        <p className="text-xl font-bold mb-1 fancy-link">{club.titlePublishedZH}</p>
-                        <p className="text-sm secondary">{club.shortContentPublishedZH}</p>
+                        <p className="text-xl font-bold mb-1 fancy-link">{language === 'en' ? club.titlePublishedEN : club.titlePublishedZH}</p>
+                        <p className="text-sm secondary">{language === 'en' ? club.shortContentPublishedEN : club.shortContentPublishedZH}</p>
                     </div>
                 </Link>)}
             </div>

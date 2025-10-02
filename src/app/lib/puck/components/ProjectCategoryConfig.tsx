@@ -20,7 +20,7 @@ const ProjectCategoryConfig: ComponentConfig = {
     resolveData: async () => {
         return {
             props: {
-                resolvedProjectsInit: await getPublishedProjectsByCategoriesForInit('zh'),
+                resolvedProjectsInit: await getPublishedProjectsByCategoriesForInit(),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
@@ -30,8 +30,13 @@ const ProjectCategoryConfig: ComponentConfig = {
             return <></>
         }
         return <>
-            {resolvedProjectsInit.map((proj: { category: string, projects: Paginated<SimplifiedContentEntity> }) =>
-                <ProjectCategory title={proj.category} init={proj.projects} key={proj.category}
+            {resolvedProjectsInit.map((proj: {
+                categoryEN: string,
+                categoryZH: string,
+                projects: Paginated<SimplifiedContentEntity>
+            }) =>
+                <ProjectCategory titleEN={proj.categoryEN} titleZH={proj.categoryZH} init={proj.projects}
+                                 key={proj.categoryEN}
                                  uploadPrefix={resolvedUploadPrefix}/>)}
         </>
     }
