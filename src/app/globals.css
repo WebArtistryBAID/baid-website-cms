@@ -7,6 +7,42 @@
 @plugin 'flowbite-react/plugin/tailwindcss';
 @source '../../.flowbite-react/class-list.json';
 
+@font-face {
+    font-family: "Lato";
+    src: url("/assets/fonts/Lato-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@font-face {
+    font-family: "Lato";
+    src: url("/assets/fonts/Lato-Italic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@font-face {
+    font-family: "Lato";
+    src: url("/assets/fonts/Lato-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@font-face {
+    font-family: "Lato";
+    src: url("/assets/fonts/Lato-BoldItalic.ttf") format("truetype");
+    font-weight: 700;
+    font-style: italic;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@theme {
+    --font-sans: Lato, "Source Hans Sans", "PingFang SC", "SimHei", "黑体", "Microsoft YaHei", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
 * {
     @apply scroll-smooth font-sans;
 }
@@ -47,17 +83,21 @@ i {
     @apply mx-auto;
 }
 
+.at:after {
+    content: '@';
+}
+
 .fancy-link {
-    display: inline;
-    background: linear-gradient(to right, transparent, transparent), linear-gradient(to right, black, black);
+    display: inline !important;
+    background: linear-gradient(to right, transparent, transparent), linear-gradient(to right, black, black) !important;
     background-size: 100% 0.1em, 0 0.1em;
-    background-position: 100% 100%, 0 100%;
-    background-repeat: no-repeat;
-    transition: background-size 300ms;
+    background-position: 100% 100%, 0 100% !important;
+    background-repeat: no-repeat !important;
+    transition: background-size 300ms !important;
 }
 
 .fancy-link:hover, .fancy-link:focus, .group:hover .fancy-link {
-    background-size: 0 0.1em, 100% 0.1em;
+    background-size: 0 0.1em, 100% 0.1em !important;
 }
 
 .group-hover-scale {
@@ -98,4 +138,8 @@ article img {
 
 .project-big-pic-box {
     box-shadow: -2rem 2rem var(--standard-blue);
+}
+
+.link-white::before {
+    background-color: white;
 }

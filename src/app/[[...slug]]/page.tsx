@@ -3,6 +3,17 @@ import { notFound, redirect } from 'next/navigation'
 import { Render } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
+import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
+import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
+
+const PAGES = [
+    { id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about' },
+    { id: 2, titleEN: 'Academics', titleZH: '学术', slug: 'academics' },
+    { id: 3, titleEN: 'Life', titleZH: '学生生活', slug: 'life' },
+    { id: 4, titleEN: 'Projects', titleZH: '自主项目', slug: 'projects' },
+    { id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions' },
+    { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news' }
+]
 
 export default async function RouteHandler({ params }: { params: Promise<{ slug: string[] | undefined }> }) {
     const route = (await params).slug ?? []
@@ -28,18 +39,20 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
 
     const newRoute = route.slice(1)
+    const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
     // TODO Custom handling for content entity pages
-    const entity = await getContentEntityBySlug(newRoute.length === 0 ? 'home' : newRoute.join('/'))
+    const entity = await getContentEntityBySlug(slug)
     if (entity == null) {
         notFound()
     }
 
-    // TODO header, footer
     return <>
+        <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
         <Render config={PUCK_CONFIG}
                 data={finalLocale === 'en'
                     ? JSON.parse(entity.contentPublishedEN!)
                     : JSON.parse(entity.contentPublishedZH!)}/>
+        <GlobalFooter pages={PAGES}/>
     </>
 }
