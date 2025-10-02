@@ -8,7 +8,7 @@ To run in production:
 
 * Using `pm2` allows for proper deployment in production.
 * Remember to set the environment variables.
-* Set up scheduled tasks.
+* Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
 
 To run in development:
 
@@ -16,6 +16,21 @@ To run in development:
 * Run `npm install`.
 * Copy `.env.example` to `.env` and fill the environment variables.
 * Run `npm run dev`.
+* Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
+
+## Expected Pages
+
+* `/`
+* `/about`
+* `/academics`
+* `/life`
+* `/projects`
+* `/admissions`
+* `/news`
+
+Certain pages have hardcoded constants associated with them; for example, header transparency.
+
+`/content/yyyy/MM/dd/slug` is used for showing details of content entities.
 
 ## Environment Variables
 
