@@ -21,6 +21,7 @@ import AnonymousQuoteConfig from '@/app/lib/puck/components/AnonymousQuote'
 import ActivitiesConfig from '@/app/lib/puck/components/Activities'
 import ClubsConfig from '@/app/lib/puck/components/ClubsConfig'
 import FeaturedProjectsConfig from '@/app/lib/puck/components/FeaturedProjectsConfig'
+import ProjectCategoryConfig from '@/app/lib/puck/components/ProjectCategoryConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -45,7 +46,8 @@ export const PUCK_CONFIG: Config = {
         AnonymousQuoteConfig,
         ActivitiesConfig,
         ClubsConfig,
-        FeaturedProjectsConfig
+        FeaturedProjectsConfig,
+        ProjectCategoryConfig
     },
     categories: {
         layout: {
@@ -58,7 +60,7 @@ export const PUCK_CONFIG: Config = {
                 'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
                 'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig',
                 'SpecialtiesConfig', 'ContactsConfig', 'ApplicationStepsConfig', 'AnonymousQuoteConfig',
-                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig' ]
+                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig' ]
         },
         heroes: {
             title: '首屏',

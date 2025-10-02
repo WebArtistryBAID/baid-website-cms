@@ -40,6 +40,62 @@ export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[
     })
 }
 
+export async function getPublishedProjectsByCategory(page: number, category: string): Promise<Paginated<SimplifiedContentEntity>> {
+    const pages = Math.ceil(await prisma.contentEntity.count({
+        where: {
+            type: EntityType.project,
+            contentPublishedEN: { not: null },
+            OR: [
+                { categoryEN: category },
+                { categoryZH: category }
+            ]
+        }
+    }) / PAGE_SIZE)
+    const posts = await prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.project,
+            contentPublishedEN: { not: null },
+            OR: [
+                { categoryEN: category },
+                { categoryZH: category }
+            ]
+        },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    })
+    return {
+        items: posts,
+        page,
+        pages
+    }
+}
+
+export async function getPublishedProjectsByCategoriesForInit(lang: 'en' | 'zh'): Promise<{
+    category: string,
+    projects: Paginated<SimplifiedContentEntity>
+}[]> {
+    const categories = await prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.project,
+            contentPublishedEN: { not: null },
+            categoryEN: lang === 'en' ? { not: null } : undefined,
+            categoryZH: lang === 'zh' ? { not: null } : undefined
+        },
+        distinct: [ 'categoryEN' ],
+        select: {
+            categoryEN: lang === 'en',
+            categoryZH: lang === 'zh'
+        }
+    })
+    const result: { category: string; projects: Paginated<SimplifiedContentEntity> }[] = []
+    for (const cat of categories) {
+        result.push({
+            category: lang === 'en' ? cat.categoryEN! : cat.categoryZH!,
+            projects: await getPublishedProjectsByCategory(0, lang === 'en' ? cat.categoryEN! : cat.categoryZH!)
+        })
+    }
+    return result
+}
+
 export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {

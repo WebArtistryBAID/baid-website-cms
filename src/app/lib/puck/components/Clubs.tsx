@@ -31,18 +31,20 @@ export default function Clubs({ title, init, uploadPrefix }: {
             <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                 {page.items.map(club => <Link
                     href="/todo"
-                    className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
+                    className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
                     key={club.id}>
                     <If condition={club.coverImagePublished != null}>
                         <img src={`${uploadPrefix}/${club.coverImagePublished?.sha1}_thumb.webp`}
-                             alt={club.coverImagePublished?.altText} className="object-cover w-full rounded-3xl h-48"/>
+                             alt={club.coverImagePublished?.altText}
+                             className="object-cover w-full rounded-3xl h-48 group-hover-scale"/>
                     </If>
                     <If condition={club.coverImagePublished == null}>
-                        <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
+                        <div
+                            className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
                     </If>
 
                     <div className="p-8">
-                        <p className="text-xl font-bold mb-1">{club.titlePublishedZH}</p>
+                        <p className="text-xl font-bold mb-1 fancy-link">{club.titlePublishedZH}</p>
                         <p className="text-sm secondary">{club.shortContentPublishedZH}</p>
                     </div>
                 </Link>)}
@@ -57,7 +59,7 @@ export default function Clubs({ title, init, uploadPrefix }: {
                     </button>
                 </If>
 
-                <span>第 {currentPage + 1} 页，共 {page.pages} 页</span>
+                <span>{currentPage + 1} / {page.pages}</span>
 
                 <If condition={currentPage > 0}>
                     <button className="p-2 !h-8 !w-8 bg-blue-500 hover:bg-blue-600 transition-colors
