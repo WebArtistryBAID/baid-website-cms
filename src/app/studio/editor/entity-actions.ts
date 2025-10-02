@@ -205,7 +205,7 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             contentPublishedEN: post.contentDraftEN,
             contentPublishedZH: post.contentDraftZH,
             shortContentPublishedEN: post.shortContentDraftEN,
-            shortContentPublishedZH: post.shortContentPublishedZH,
+            shortContentPublishedZH: post.shortContentDraftZH,
             coverImagePublishedId: post.coverImageDraftId
         }
     })
