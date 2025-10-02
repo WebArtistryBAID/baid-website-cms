@@ -93,5 +93,9 @@ article img {
 }
 
 .alumni-big-pic-box {
-    box-shadow: -2rem 2rem oklch(39.6% 0.141 25.723);
+    box-shadow: -2rem 2rem var(--standard-red);
+}
+
+.project-big-pic-box {
+    box-shadow: -2rem 2rem var(--standard-blue);
 }
