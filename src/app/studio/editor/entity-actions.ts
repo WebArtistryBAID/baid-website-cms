@@ -31,17 +31,27 @@ export async function getRecentEntities(type: EntityType): Promise<SimplifiedCon
     })
 }
 
-export async function getPublishedContentEntities(page: number, type: EntityType): Promise<Paginated<SimplifiedContentEntity>> {
+export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
             type,
-            contentPublishedEN: { not: null }
+            contentPublishedEN: { not: null },
+            OR: query == null ? undefined : [
+                { titlePublishedEN: { contains: query, mode: 'insensitive' } },
+                { titlePublishedZH: { contains: query, mode: 'insensitive' } },
+                { slug: { contains: query, mode: 'insensitive' } }
+            ]
         }
     }) / PAGE_SIZE)
     const posts = await prisma.contentEntity.findMany({
         where: {
             type,
-            contentPublishedEN: { not: null }
+            contentPublishedEN: { not: null },
+            OR: query == null ? undefined : [
+                { titlePublishedEN: { contains: query, mode: 'insensitive' } },
+                { titlePublishedZH: { contains: query, mode: 'insensitive' } },
+                { slug: { contains: query, mode: 'insensitive' } }
+            ]
         },
         orderBy: { createdAt: 'desc' },
         skip: page * PAGE_SIZE,
