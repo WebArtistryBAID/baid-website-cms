@@ -66,7 +66,7 @@ function Activities({ title, resolvedActivities, uploadPrefix }: {
              className="sm:grid grid-cols-1 lg:grid-cols-2 gap-0 shadow-xl rounded-3xl overflow-clip" role="list">
             {activities?.length > 0 && <ActivityBlock
                 name={activities[0]!.titlePublishedZH ?? ''}
-                description={activities[0]!.contentPublishedZH ?? ''}
+                description={activities[0]!.shortContentPublishedZH ?? ''}
                 image={activities[0]!.coverImagePublished ?? undefined}
                 background="var(--standard-blue)"
                 light={true}
@@ -74,7 +74,7 @@ function Activities({ title, resolvedActivities, uploadPrefix }: {
                 uploadPrefix={uploadPrefix}/>}
             {activities?.length > 1 && <ActivityBlock
                 name={activities[1]!.titlePublishedZH ?? ''}
-                description={activities[1]!.contentPublishedZH ?? ''}
+                description={activities[1]!.shortContentPublishedZH ?? ''}
                 image={activities[1]!.coverImagePublished ?? undefined}
                 background="var(--standard-red)"
                 light={true}
@@ -82,7 +82,7 @@ function Activities({ title, resolvedActivities, uploadPrefix }: {
                 uploadPrefix={uploadPrefix}/>}
             {activities?.length > 2 && <ActivityBlock
                 name={activities[2]!.titlePublishedZH ?? ''}
-                description={activities[2]!.contentPublishedZH ?? ''}
+                description={activities[2]!.shortContentPublishedZH ?? ''}
                 image={activities[2]!.coverImagePublished ?? undefined}
                 background="var(--standard-red)"
                 light={true}
@@ -90,7 +90,7 @@ function Activities({ title, resolvedActivities, uploadPrefix }: {
                 uploadPrefix={uploadPrefix}/>}
             {activities?.length > 3 && <ActivityBlock
                 name={activities[3]!.titlePublishedZH ?? ''}
-                description={activities[3]!.contentPublishedZH ?? ''}
+                description={activities[3]!.shortContentPublishedZH ?? ''}
                 image={activities[3]!.coverImagePublished ?? undefined}
                 background="#d3d3d3"
                 light={false}
@@ -98,7 +98,7 @@ function Activities({ title, resolvedActivities, uploadPrefix }: {
                 uploadPrefix={uploadPrefix}/>}
             {activities?.length > 4 && <ActivityBlock
                 name={activities[4]!.titlePublishedZH ?? ''}
-                description={activities[4]!.contentPublishedZH ?? ''}
+                description={activities[4]!.shortContentPublishedZH ?? ''}
                 image={activities[4]!.coverImagePublished ?? undefined}
                 background="var(--standard-blue)"
                 light={true}
@@ -106,7 +106,7 @@ function Activities({ title, resolvedActivities, uploadPrefix }: {
                 uploadPrefix={uploadPrefix}/>}
             {activities?.length > 5 && <ActivityBlock
                 name={activities[5]!.titlePublishedZH ?? ''}
-                description={activities[5]!.contentPublishedZH ?? ''}
+                description={activities[5]!.shortContentPublishedZH ?? ''}
                 image={activities[5]!.coverImagePublished ?? undefined}
                 background="var(--standard-red)"
                 light={true}
