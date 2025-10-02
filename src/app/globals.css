@@ -84,3 +84,7 @@ article h3 {
 article img {
     @apply rounded-lg text-center max-w-96 mx-auto mb-3;
 }
+
+.alumni-big-pic-box {
+    box-shadow: -2rem 2rem oklch(39.6% 0.141 25.723);
+}
