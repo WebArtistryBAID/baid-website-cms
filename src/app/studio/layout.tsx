@@ -49,7 +49,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
             <If condition={!pathName.includes('preview') && !(pathName.includes('pages') && pathName.includes('editor'))}>
                 <div className="h-screen">
                     <Sidebar className="h-full relative">
-                        <SidebarLogo href="/core" img="/assets/icon.png"><span
+                        <SidebarLogo href="/" img="/assets/icon.png"><span
                             className="font-display">Helium</span></SidebarLogo>
                         <SidebarItems>
                             <SidebarItemGroup>

@@ -5,6 +5,7 @@ import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
 import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
+import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
 
 const PAGES = [
     { id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about' },
@@ -41,7 +42,25 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     const newRoute = route.slice(1)
     const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
-    // TODO Custom handling for content entity pages
+    if (newRoute.length === 5 && newRoute[0] === 'content') {
+        const actualSlug = newRoute[4]
+        const entity = await getContentEntityBySlug(actualSlug)
+        if (entity == null) {
+            notFound()
+        }
+        const year = entity.createdAt.getFullYear().toString()
+        const month = (entity.createdAt.getMonth() + 1).toString().padStart(2, '0')
+        const day = entity.createdAt.getDate().toString().padStart(2, '0')
+        if (year !== newRoute[1] || month !== newRoute[2] || day !== newRoute[3]) {
+            notFound()
+        }
+        return <>
+            <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
+            <AnyContentEntityPage entity={entity} params={params}/>
+            <GlobalFooter pages={PAGES}/>
+        </>
+    }
+
     const entity = await getContentEntityBySlug(slug)
     if (entity == null) {
         notFound()
