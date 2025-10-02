@@ -12,6 +12,7 @@ import HeroConfig from '@/app/lib/puck/components/HeroConfig'
 import GridTextConfig from '@/app/lib/puck/components/GridText'
 import AccreditationsConfig from '@/app/lib/puck/components/AccreditationsConfig'
 import AlumniConfig from '@/app/lib/puck/components/AlumniConfig'
+import CoursesConfig from '@/app/lib/puck/components/CoursesConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -27,7 +28,8 @@ export const PUCK_CONFIG: Config = {
         HeroConfig,
         GridTextConfig,
         AccreditationsConfig,
-        AlumniConfig
+        AlumniConfig,
+        CoursesConfig
     },
     categories: {
         layout: {
@@ -36,7 +38,9 @@ export const PUCK_CONFIG: Config = {
         },
         sections: {
             title: '内容区块',
-            components: [ 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig', 'BentoBoxConfig', 'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig', 'AccreditationsConfig', 'AlumniConfig' ]
+            components: [ 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig', 'BentoBoxConfig',
+                'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
+                'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig' ]
         },
         heroes: {
             title: '首屏',

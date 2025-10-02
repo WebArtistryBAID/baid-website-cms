@@ -31,6 +31,15 @@ export async function getRecentEntities(type: EntityType): Promise<SimplifiedCon
     })
 }
 
+export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[]> {
+    return prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.course
+        },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    })
+}
+
 export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
