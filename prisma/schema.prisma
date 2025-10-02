@@ -86,6 +86,7 @@ model ContentEntity {
   titleDraftEN          String
   titleDraftZH          String
   slug                  String       @unique
+  category              String?
   contentPublishedEN    String? // Markdown OR Puck data
   contentPublishedZH    String? // Markdown OR Puck data
   contentDraftEN        String // Markdown OR Puck data

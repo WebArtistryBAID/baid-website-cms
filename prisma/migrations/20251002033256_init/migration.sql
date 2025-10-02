@@ -51,6 +51,7 @@ CREATE TABLE "public"."ContentEntity"
     "titleDraftEN"          TEXT                  NOT NULL,
     "titleDraftZH"          TEXT                  NOT NULL,
     "slug"                  TEXT                  NOT NULL,
+    "category"              TEXT,
     "contentPublishedEN"    TEXT,
     "contentPublishedZH"    TEXT,
     "contentDraftEN"        TEXT                  NOT NULL,

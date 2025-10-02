@@ -40,12 +40,13 @@ export const SIMPLIFIED_USER_SELECT = {
 
 export interface SimplifiedContentEntity {
     id: number
-    type: EntityType,
+    type: EntityType
     titlePublishedEN: string | null
     titlePublishedZH: string | null
     titleDraftEN: string
     titleDraftZH: string
     slug: string
+    category: string
     coverImagePublished: Image | null
     coverImageDraft: Image | null
     creator: SimplifiedUser
@@ -61,6 +62,7 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
     titleDraftEN: true,
     titleDraftZH: true,
     slug: true,
+    category: true,
     coverImagePublished: true,
     coverImageDraft: true,
     creator: {
@@ -72,12 +74,13 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
 
 export interface HydratedContentEntity {
     id: number
-    type: EntityType,
+    type: EntityType
     titlePublishedEN: string | null
     titlePublishedZH: string | null
     titleDraftEN: string
     titleDraftZH: string
     slug: string
+    category: string
     contentPublishedEN: string | null
     contentPublishedZH: string | null
     contentDraftEN: string
@@ -100,6 +103,7 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     titleDraftEN: true,
     titleDraftZH: true,
     slug: true,
+    category: true,
     contentPublishedEN: true,
     contentPublishedZH: true,
     contentDraftEN: true,
