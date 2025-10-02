@@ -79,28 +79,32 @@ model UserAuditLog {
 }
 
 model ContentEntity {
-  id                    Int          @id @default(autoincrement())
-  type                  EntityType
-  titlePublishedEN      String?
-  titlePublishedZH      String?
-  titleDraftEN          String
-  titleDraftZH          String
-  slug                  String       @unique
-  categoryEN String?
-  categoryZH String?
-  contentPublishedEN    String? // Markdown OR Puck data
-  contentPublishedZH    String? // Markdown OR Puck data
-  contentDraftEN        String // Markdown OR Puck data
-  contentDraftZH        String // Markdown OR Puck data
-  coverImagePublished   Image?       @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
-  coverImagePublishedId Int?
-  coverImageDraft       Image?       @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
-  coverImageDraftId     Int?
-  creatorId             Int
-  creator               User         @relation(fields: [creatorId], references: [id])
-  createdAt             DateTime     @default(now())
-  updatedAt             DateTime     @updatedAt
-  locks                 EntityLock[]
+  id                      Int         @id @default(autoincrement())
+  type                    EntityType
+  titlePublishedEN        String?
+  titlePublishedZH        String?
+  titleDraftEN            String
+  titleDraftZH            String
+  slug                    String      @unique
+  categoryEN              String?
+  categoryZH              String?
+  shortContentPublishedEN String?
+  shortContentPublishedZH String?
+  shortContentDraftEN     String?
+  shortContentDraftZH     String?
+  contentPublishedEN      String? // Markdown OR Puck data
+  contentPublishedZH      String? // Markdown OR Puck data
+  contentDraftEN          String // Markdown OR Puck data
+  contentDraftZH          String // Markdown OR Puck data
+  coverImagePublished     Image?      @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublishedId   Int?
+  coverImageDraft         Image?      @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraftId       Int?
+  creatorId               Int
+  creator                 User        @relation(fields: [creatorId], references: [id])
+  createdAt               DateTime    @default(now())
+  updatedAt               DateTime    @updatedAt
+  locks                   EntityLock[]
 }
 
 model Image {

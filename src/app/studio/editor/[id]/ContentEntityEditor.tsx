@@ -46,6 +46,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
     const [ showTitleForm, setShowTitleForm ] = useState(false)
+    const [ showShortContentForm, setShowShortContentForm ] = useState(false)
     const [ showSlugForm, setShowSlugForm ] = useState(false)
     const [ showDateForm, setShowDateForm ] = useState(false)
     const [ showCategoryForm, setShowCategoryForm ] = useState(false)
@@ -90,6 +91,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             slug: draft.slug,
             contentDraftEN: draft.contentDraftEN,
             contentDraftZH: draft.contentDraftZH,
+            shortContentDraftEN: draft.shortContentDraftEN,
+            shortContentDraftZH: draft.shortContentDraftZH,
             coverImageDraftId: draft.coverImageDraft?.id,
             createdAt: draft.createdAt
         }),
@@ -103,6 +106,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             'coverImageDraft.id',
             'contentDraftEN',
             'contentDraftZH',
+            'shortContentDraftEN',
+            'shortContentDraftZH',
             'createdAt'
         ]
     })
@@ -152,6 +157,41 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             </ModalBody>
             <ModalFooter>
                 <Button pill color="blue" disabled={loading} onClick={() => setShowTitleForm(false)}>确认</Button>
+            </ModalFooter>
+        </Modal>
+
+        <Modal show={showShortContentForm} size="md" popup onClose={() => setShowShortContentForm(false)}>
+            <ModalHeader/>
+            <ModalBody>
+                <div className="space-y-6">
+                    <h3 className="text-xl font-bold">更改短内容</h3>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="sc-zh">短内容 (中文)</Label>
+                        </div>
+                        <TextInput id="sc-zh" value={post.shortContentDraftZH ?? ''}
+                                   onChange={e => setPost({
+                                       ...post,
+                                       shortContentDraftZH: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                    <div>
+                        <div className="mb-2 block">
+                            <Label htmlFor="sc-en">短内容 (英文)</Label>
+                        </div>
+                        <TextInput id="sc-en" value={post.shortContentDraftEN ?? ''}
+                                   onChange={e => setPost({
+                                       ...post,
+                                       shortContentDraftEN: e.currentTarget.value
+                                   })}
+                                   required/>
+                    </div>
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={loading}
+                        onClick={() => setShowShortContentForm(false)}>确认</Button>
             </ModalFooter>
         </Modal>
 
@@ -295,6 +335,15 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 <HiPencil className="text-white text-xs"/>
                             </button>
                         </p>
+
+                        <p className="font-bold secondary text-sm">短内容</p>
+                        <div className="mb-3 flex items-center gap-3">
+                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
+                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑短内容"
+                                    onClick={() => setShowShortContentForm(true)}>
+                                <HiPencil className="text-white text-xs"/>
+                            </button>
+                        </div>
 
                         <p className="font-bold secondary text-sm">状态</p>
                         <p className="mb-3">

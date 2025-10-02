@@ -23,6 +23,8 @@ export function isAligned(item: ContentEntity) {
         item.titlePublishedZH === item.titleDraftZH &&
         item.contentPublishedEN === item.contentDraftEN &&
         item.contentPublishedZH === item.contentDraftZH &&
+        item.shortContentPublishedEN === item.shortContentDraftEN &&
+        item.shortContentPublishedZH === item.shortContentDraftZH &&
         item.coverImagePublishedId === item.coverImageDraftId
     )
 }
@@ -46,6 +48,10 @@ export interface SimplifiedContentEntity {
     titleDraftEN: string
     titleDraftZH: string
     slug: string
+    shortContentPublishedEN: string | null
+    shortContentPublishedZH: string | null
+    shortContentDraftEN: string | null
+    shortContentDraftZH: string | null
     categoryEN: string | null
     categoryZH: string | null
     coverImagePublished: Image | null
@@ -62,6 +68,10 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
     titlePublishedZH: true,
     titleDraftEN: true,
     titleDraftZH: true,
+    shortContentPublishedEN: true,
+    shortContentPublishedZH: true,
+    shortContentDraftEN: true,
+    shortContentDraftZH: true,
     slug: true,
     categoryEN: true,
     categoryZH: true,
@@ -84,6 +94,10 @@ export interface HydratedContentEntity {
     slug: string
     categoryEN: string | null
     categoryZH: string | null
+    shortContentPublishedEN: string | null
+    shortContentPublishedZH: string | null
+    shortContentDraftEN: string | null
+    shortContentDraftZH: string | null
     contentPublishedEN: string | null
     contentPublishedZH: string | null
     contentDraftEN: string
@@ -105,6 +119,10 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     titlePublishedZH: true,
     titleDraftEN: true,
     titleDraftZH: true,
+    shortContentPublishedEN: true,
+    shortContentPublishedZH: true,
+    shortContentDraftEN: true,
+    shortContentDraftZH: true,
     slug: true,
     categoryEN: true,
     categoryZH: true,

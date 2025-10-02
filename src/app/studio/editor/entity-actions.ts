@@ -169,6 +169,8 @@ export async function unpublishContentEntity(id: number): Promise<void> {
             titlePublishedEN: null,
             titlePublishedZH: null,
             coverImagePublishedId: null,
+            shortContentPublishedEN: null,
+            shortContentPublishedZH: null,
             contentPublishedEN: null,
             contentPublishedZH: null
         }
@@ -202,6 +204,8 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             titlePublishedZH: post.titleDraftZH,
             contentPublishedEN: post.contentDraftEN,
             contentPublishedZH: post.contentDraftZH,
+            shortContentPublishedEN: post.shortContentDraftEN,
+            shortContentPublishedZH: post.shortContentPublishedZH,
             coverImagePublishedId: post.coverImageDraftId
         }
     })
@@ -274,6 +278,8 @@ export async function updateContentEntity(data: {
     createdAt: Date | undefined
     titleDraftEN: string | undefined
     titleDraftZH: string | undefined
+    shortContentDraftEN: string | null | undefined
+    shortContentDraftZH: string | null | undefined
     contentDraftEN: string | undefined
     contentDraftZH: string | undefined
     coverImageDraftId: number | null | undefined
@@ -288,6 +294,8 @@ export async function updateContentEntity(data: {
             categoryZH: data.categoryZH,
             titleDraftEN: data.titleDraftEN,
             titleDraftZH: data.titleDraftZH,
+            shortContentDraftEN: data.shortContentDraftEN,
+            shortContentDraftZH: data.shortContentDraftZH,
             contentDraftEN: data.contentDraftEN,
             contentDraftZH: data.contentDraftZH,
             coverImageDraftId: data.coverImageDraftId
@@ -299,6 +307,11 @@ export async function updateContentEntity(data: {
             type: UserAuditLogType.writerEditEntity,
             userId: user.id,
             values: [ data.id.toString(), post.titleDraftEN ]
+        }
+    })
+    await prisma.approval.deleteMany({
+        where: {
+            entityId: data.id
         }
     })
     return post
