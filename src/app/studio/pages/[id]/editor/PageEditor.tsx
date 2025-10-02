@@ -17,12 +17,12 @@ import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
+import '@measured/puck/puck.css'
 
-export default function PageEditor({ init, userId, lockToken, uploadPrefix }: {
+export default function PageEditor({ init, userId, lockToken }: {
     init: HydratedContentEntity,
     userId: number,
-    lockToken: string,
-    uploadPrefix: string
+    lockToken: string
 }) {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMetadata, setShowMetadata ] = useState(false)

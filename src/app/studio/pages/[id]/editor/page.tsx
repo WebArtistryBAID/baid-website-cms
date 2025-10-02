@@ -26,5 +26,5 @@ export default async function StudioPageEditor({ params, searchParams }: {
     }
 
     return <PageEditor init={entity} userId={user.id}
-                       lockToken={token} uploadPrefix={process.env.UPLOAD_SERVE_PATH!}/>
+                       lockToken={token}/>
 }

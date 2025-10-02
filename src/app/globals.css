@@ -1,5 +1,8 @@
 @import 'tailwindcss';
-@import '@measured/puck/puck.css';
+@import 'swiper/css';
+@import 'swiper/css/pagination';
+@import 'swiper/css/a11y';
+@import 'swiper/css/autoplay';
 
 @plugin 'flowbite-react/plugin/tailwindcss';
 @source '../../.flowbite-react/class-list.json';
