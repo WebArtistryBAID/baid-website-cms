@@ -14,6 +14,9 @@ export default async function StudioContentEntityEditor({ params, searchParams }
     if (entity == null) {
         redirect('/studio')
     }
+    if (entity.type === 'page') {
+        redirect(`/studio/pages/${entity.id}/editor?token=${(await searchParams).token ?? ''}`)
+    }
 
     const token = await tryAcquireLock({
         entityType: entity.type,
