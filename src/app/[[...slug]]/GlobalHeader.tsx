@@ -72,6 +72,8 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
     const [ mobileOpen, setMobileOpen ] = useState(false)
     const closeButtonRef = useRef<HTMLButtonElement | null>(null)
 
+    const [ useBlackText, setUseBlackText ] = useState(true)
+
     useEffect(() => {
         if (mobileOpen) {
             const prev = document.body.style.overflow
@@ -97,6 +99,42 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
         setMobileOpen(false)
     }, [ pathname ])
 
+    useEffect(() => {
+        const update = () => {
+            // 1) If header background is white (i.e., not transparent), always use black text
+            if (!isTransparent) {
+                setUseBlackText(true)
+                return
+            }
+            // 2) Otherwise detect underlying surface
+            const x = Math.floor(window.innerWidth / 2)
+            const y = 1 // just below the top edge
+            const stack = document.elementsFromPoint(x, y)
+            const firstBelow = stack.find((n) => {
+                if (!(n instanceof HTMLElement)) return false
+                // exclude the header itself and its descendants
+                return !n.closest('header[role="banner"]')
+            }) as HTMLElement | undefined
+
+            let cur: HTMLElement | null = firstBelow ?? null
+            let surface: string | null = null
+            while (cur && !surface) {
+                surface = cur.getAttribute('data-surface')
+                cur = cur.parentElement
+            }
+            // Default to black text if we can't determine
+            setUseBlackText(surface !== 'dark')
+        }
+
+        update()
+        window.addEventListener('scroll', update, { passive: true })
+        window.addEventListener('resize', update)
+        return () => {
+            window.removeEventListener('scroll', update)
+            window.removeEventListener('resize', update)
+        }
+    }, [ isTransparent ])
+
     return (
         <>
             <a className="sr-only" href="#main-content">
@@ -111,14 +149,14 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                     backgroundClass
                 ].join(' ')}>
                 <div className="mr-auto py-4 transition-colors duration-300">
-                    <SchoolLogo color={isTransparent ? 'white' : 'black'}/>
+                    <SchoolLogo color={useBlackText ? 'black' : 'white'}/>
                 </div>
 
                 <nav
                     aria-label={locales[language].nav}
                     className={[
                         'hidden lg:flex transition-colors duration-300',
-                        isTransparent ? 'text-white' : 'text-black'
+                        useBlackText ? 'text-black' : 'text-white'
                     ].join(' ')}
                 >
                     <RouterLinks pages={pages}/>
@@ -139,7 +177,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                         aria-label={mobileOpen ? locales[language].close : locales[language].open}
                         onClick={() => setMobileOpen((o) => !o)}>
                         <svg
-                            stroke={isTransparent ? '#fff' : '#000'}
+                            stroke={useBlackText ? '#000' : '#fff'}
                             aria-hidden="true"
                             className="h-6 w-6 transition-colors duration-300"
                             viewBox="0 0 24 24"
@@ -163,7 +201,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                         }}
                         aria-label={locales[language].language}
                         className="decoration-none transition-colors duration-100 opacity-50 hover:opacity-100 active:opacity-80"
-                        style={{ color: isTransparent ? 'white' as const : 'black' as const }}>
+                        style={{ color: useBlackText ? 'black' : 'white' }}>
                         <svg className="w-6 h-10" height="32" viewBox="0 0 24 18" width="32"
                              aria-label={locales[language].language}>
                             <path

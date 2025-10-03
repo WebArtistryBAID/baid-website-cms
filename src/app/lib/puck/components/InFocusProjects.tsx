@@ -46,7 +46,7 @@ export default function InFocusProjects({
     }, [])
 
     return <>
-        <section style={{
+        <section data-surface="dark" style={{
             backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',

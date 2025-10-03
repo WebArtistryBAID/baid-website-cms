@@ -62,7 +62,7 @@ export default function InFocusNewStudents({
     }, [])
 
     return <>
-        <section style={{
+        <section data-surface="light" style={{
             backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',
