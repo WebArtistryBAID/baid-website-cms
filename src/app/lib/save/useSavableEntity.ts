@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 type SaveFn<T> = (draft: T) => Promise<T>
 type RefreshFn<T> = () => Promise<T>
@@ -54,11 +54,15 @@ function compareByKeys<T>(a: T, b: T, keys: string[]): boolean {
     return true
 }
 
+function deepClone<T>(v: T): T {
+    return structuredClone(v)
+}
+
 export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavableEntityReturn<T> {
     const { initial, saveFn, refreshFn, compareKeys, equals } = opts
 
-    const [ draft, setDraft ] = useState<T>(initial)
-    const [ previous, setPrevious ] = useState<T>(initial)
+    const [ draft, setDraft ] = useState<T>(deepClone(initial))
+    const [ previous, setPrevious ] = useState<T>(deepClone(initial))
     const [ loading, setLoading ] = useState(false)
 
     const saveFnRef = useRef(saveFn)
@@ -69,6 +73,14 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
     useEffect(() => {
         refreshFnRef.current = refreshFn
     }, [ refreshFn ])
+
+    useEffect(() => {
+        // When the upstream provides a new initial object (e.g., refetched),
+        // re-seed both draft and previous to that snapshot.
+        setDraft(deepClone(initial))
+        setPrevious(deepClone(initial))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [ initial ])
 
     const hasChanges = useMemo(() => {
         if (equals) return !equals(previous, draft)
@@ -92,7 +104,7 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
             const updated = await saveFnRef.current(draft)
             if (!mountedRef.current) return
             setDraft(updated)
-            setPrevious(updated)
+            setPrevious(deepClone(updated))
         } finally {
             if (mountedRef.current) setLoading(false)
         }
@@ -105,7 +117,7 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
             const fresh = await refreshFnRef.current()
             if (!mountedRef.current) return
             setDraft(fresh)
-            setPrevious(fresh)
+            setPrevious(deepClone(fresh))
         } finally {
             if (mountedRef.current) setLoading(false)
         }

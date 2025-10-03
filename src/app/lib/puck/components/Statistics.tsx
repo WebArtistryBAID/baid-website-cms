@@ -21,8 +21,8 @@ function Statistics({ title, content }: {
                 aria-label="Statistics"
                 className="w-full md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-5"
                 role="list">
-                {content?.map(stat => <div
-                    key={stat?.name}
+                {content?.map((stat, index) => <div
+                    key={index}
                     className="flex items-center"
                     aria-label={`${stat?.name}: ${stat?.value}`}
                     role="listitem"

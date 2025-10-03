@@ -55,6 +55,10 @@ export default function PageEditor({ init, userId, lockToken }: {
             slug: draft.slug,
             contentDraftEN: draft.contentDraftEN,
             contentDraftZH: draft.contentDraftZH,
+            shortContentDraftEN: null,
+            shortContentDraftZH: null,
+            categoryEN: null,
+            categoryZH: null,
             coverImageDraftId: null,
             createdAt: draft.createdAt
         }),
@@ -102,10 +106,13 @@ export default function PageEditor({ init, userId, lockToken }: {
                             <Label htmlFor="slug">链接位置</Label>
                         </div>
                         <TextInput id="slug" value={draft.slug} placeholder="better-me-better-world"
-                                   onChange={e => setDraft({
-                                       ...draft,
-                                       slug: e.currentTarget.value
-                                   })}/>
+                                   onChange={e => {
+                                       const val = e.currentTarget?.value ?? '' // I really don't know why it can be null
+                                       setDraft(prev => ({
+                                           ...prev,
+                                           slug: val
+                                       }))
+                                   }}/>
                     </div>
                     <div>
                         <Label>状态</Label>
@@ -155,13 +162,13 @@ export default function PageEditor({ init, userId, lockToken }: {
                         setLoadingAdditional(false)
                         await refresh()
                         setUnpublishConfirm(false)
-                        setDraft({ // Somehow refreshing doesn't work so we update the state locally
-                            ...draft,
+                        setDraft(prev => ({ // Somehow refreshing doesn't work so we update the state locally
+                            ...prev,
                             titlePublishedEN: null,
                             titlePublishedZH: null,
                             contentPublishedEN: null,
                             contentPublishedZH: null
-                        })
+                        }))
                         router.refresh()
                     }}>
                         {unpublishConfirm ? '确认撤回?' : '撤回发布'}
@@ -186,17 +193,17 @@ export default function PageEditor({ init, userId, lockToken }: {
             data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
             onChange={data => {
                 if (inEnglish) {
-                    setDraft({
-                        ...draft,
+                    setDraft(prev => ({
+                        ...prev,
                         contentDraftEN: JSON.stringify(data),
                         titleDraftEN: data.root.props?.title ?? ''
-                    })
+                    }))
                 } else {
-                    setDraft({
-                        ...draft,
+                    setDraft(prev => ({
+                        ...prev,
                         contentDraftZH: JSON.stringify(data),
                         titleDraftZH: data.root.props?.title ?? ''
-                    })
+                    }))
                 }
             }}
             overrides={{

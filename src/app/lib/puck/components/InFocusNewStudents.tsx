@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Image } from '@prisma/client'
 import Card from '@/app/lib/puck/components/Card'
@@ -108,15 +108,20 @@ export default function InFocusNewStudents({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
-                {introCards?.map((card, index) => <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
-                                                              whileInView={{ opacity: 1, transform: 'translateY(0)' }}
-                                                              transition={{ duration: 0.8, delay: 0.3 * index }}
-                                                              key={`introCard-${index}`}
-                                                              viewport={{ once: true }} className="w-full h-full">
-                    <Card href={card?.href} image={card?.image} title={card?.title}
-                          shortContent={card?.shortContent}
-                          uploadPrefix={uploadPrefix}/>
-                </motion.div>)}
+                {introCards?.map((card, index) => {
+                    if (!card) return null
+                    return (
+                        <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
+                                    whileInView={{ opacity: 1, transform: 'translateY(0)' }}
+                                    transition={{ duration: 0.8, delay: 0.3 * index }}
+                                    key={`introCard-${index}`}
+                                    viewport={{ once: true }} className="w-full h-full">
+                            <Card href={card.href} image={card.image} title={card.title}
+                                  shortContent={card.shortContent}
+                                  uploadPrefix={uploadPrefix}/>
+                        </motion.div>
+                    )
+                })}
             </div>
 
             <div className="flex flex-col md:flex-row gap-16 items-center mb-24">
@@ -152,22 +157,28 @@ export default function InFocusNewStudents({
             <p className="text-xl mb-8 text-center">{projectsDescription}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-24 w-full">
-                {projects?.map(project => <>
-                    <div className="border-t border-gray-300 p-8" key={`${project?.project?.id}-1`}>
-                        <p className="text-xl font-bold">{language === 'en' ? project?.project?.titlePublishedEN : project?.project?.titlePublishedZH}</p>
-                    </div>
-                    <div className="border-t border-gray-300 p-8" key={`${project?.project?.id}-2`}>
-                        <p>{project?.discipline}</p>
-                    </div>
-                    <div className="border-t border-gray-300 p-8" key={`${project?.project?.id}-3`}>
-                        <p>{language === 'en' ? project?.project?.shortContentPublishedEN : project?.project?.shortContentPublishedZH}</p>
-                    </div>
-                    <div className="border-t border-gray-300 p-8 flex justify-end" key={`${project?.project?.id}-4`}>
-                        <img src={`${uploadPrefix}/${project?.project?.coverImagePublished?.sha1}.webp`}
-                             alt={project?.project?.coverImagePublished?.altText}
-                             className="w-24 h-24 object-cover"/>
-                    </div>
-                </>)}
+                {projects?.map((p, index) => {
+                    if (!p) return null
+                    const pid = p.project?.id != null ? String(p.project.id) : `idx-${index}`
+                    return (
+                        <React.Fragment key={pid}>
+                            <div className="border-t border-gray-300 p-8">
+                                <p className="text-xl font-bold">{language === 'en' ? p.project?.titlePublishedEN : p.project?.titlePublishedZH}</p>
+                            </div>
+                            <div className="border-t border-gray-300 p-8">
+                                <p>{p.discipline}</p>
+                            </div>
+                            <div className="border-t border-gray-300 p-8">
+                                <p>{language === 'en' ? p.project?.shortContentPublishedEN : p.project?.shortContentPublishedZH}</p>
+                            </div>
+                            <div className="border-t border-gray-300 p-8 flex justify-end">
+                                <img src={`${uploadPrefix}/${p.project?.coverImagePublished?.sha1}.webp`}
+                                     alt={p.project?.coverImagePublished?.altText}
+                                     className="w-24 h-24 object-cover"/>
+                            </div>
+                        </React.Fragment>
+                    )
+                })}
             </div>
 
             <hr className="border border-gray-300 w-full mb-24"/>
