@@ -97,8 +97,8 @@ i {
     transition: background-size 0.2s ease-in-out;
 }
 
-.fancy-link .link-white {
-    background-image: linear-gradient(white, white);
+.fancy-link.link-white {
+    background-image: linear-gradient(white, white) !important;
 }
 
 

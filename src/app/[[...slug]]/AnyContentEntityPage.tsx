@@ -37,7 +37,7 @@ export default async function AnyContentEntityPage({ entity, params }: {
             <img className="mb-8 w-screen min-h-72 h-[33vh] object-cover" alt={entity.coverImagePublished?.altText}
                  src={`${uploadPrefix}/${entity.coverImagePublished?.sha1}.webp`}/>
         </If>
-        <article className="container my-16">
+        <article className="container px-5 my-16">
             <article>
                 <If condition={entity.type === EntityType.post}>
                     <h1>{locale === 'en' ? entity.titlePublishedEN : entity.titlePublishedZH}</h1>
