@@ -88,16 +88,22 @@ i {
 }
 
 .fancy-link {
-    display: inline !important;
-    background: linear-gradient(to right, transparent, transparent), linear-gradient(to right, black, black) !important;
-    background-size: 100% 0.1em, 0 0.1em;
-    background-position: 100% 100%, 0 100% !important;
-    background-repeat: no-repeat !important;
-    transition: background-size 300ms !important;
+    display: inline;
+    background-image: linear-gradient(black, black);
+    background-size: 0 0.1em;
+    background-position-y: 100%;
+    background-position-x: 0%;
+    background-repeat: no-repeat;
+    transition: background-size 0.2s ease-in-out;
 }
 
+.fancy-link .link-white {
+    background-image: linear-gradient(white, white);
+}
+
+
 .fancy-link:hover, .fancy-link:focus, .group:hover .fancy-link {
-    background-size: 0 0.1em, 100% 0.1em !important;
+    background-size: 100% 0.1em;
 }
 
 .group-hover-scale {
@@ -154,8 +160,4 @@ article img {
 
 .project-big-pic-box {
     box-shadow: -2rem 2rem var(--standard-blue);
-}
-
-.link-white::before {
-    background-color: white;
 }

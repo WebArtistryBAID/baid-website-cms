@@ -11,7 +11,6 @@ import Link from 'next/link'
 
 export default function InFocusProjects({
                                             heroBg,
-                                            inFocusTitle,
                                             title,
                                             description,
                                             link,
@@ -22,7 +21,6 @@ export default function InFocusProjects({
                                             uploadPrefix
                                         }: {
     heroBg: Image | null,
-    inFocusTitle: string | null,
     title: string | null,
     description: string | null,
     link: string | null,
@@ -38,7 +36,6 @@ export default function InFocusProjects({
 
     const [ scrollY, setScrollY ] = useState(0)
 
-    // FIXME I don't know why but this parallax effect isn't working
     useEffect(() => {
         const onScroll = () => {
             setScrollY(window.scrollY || window.pageYOffset || 0)
@@ -67,7 +64,7 @@ export default function InFocusProjects({
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
                                 transition={{ duration: 0.8 }}>
-                        <p className="text-lg uppercase text-center tracking-wider text-gray-300 !mb-3">{inFocusTitle}</p>
+                        <p className="text-lg uppercase text-center tracking-wider text-gray-300 !mb-3">In Focus</p>
                         <h1 id="hero-heading"
                             className="mb-3 text-white text-center font-bold font-serif text-5xl md:text-7xl">
                             {title}
@@ -192,7 +189,7 @@ export default function InFocusProjects({
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {projects.length > 3 && <>
                                 <Link className="group block"
-                                      to={getContentEntityURI(projects[3].project?.createdAt, projects[3].project?.slug)}>
+                                      href={getContentEntityURI(projects[3].project?.createdAt, projects[3].project?.slug)}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[3].discipline}
                                     </p>
@@ -211,7 +208,7 @@ export default function InFocusProjects({
 
                             {projects.length > 4 && <>
                                 <Link className="group block"
-                                      to={getContentEntityURI(projects[4].project?.createdAt, projects[4].project?.slug)}>
+                                      href={getContentEntityURI(projects[4].project?.createdAt, projects[4].project?.slug)}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[4].discipline}
                                     </p>
@@ -230,7 +227,7 @@ export default function InFocusProjects({
 
                             {projects.length > 5 && <>
                                 <Link className="group block"
-                                      to={getContentEntityURI(projects[5].project?.createdAt, projects[5].project?.slug)}>
+                                      href={getContentEntityURI(projects[5].project?.createdAt, projects[5].project?.slug)}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[5].discipline}
                                     </p>

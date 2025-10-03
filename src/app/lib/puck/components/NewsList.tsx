@@ -3,11 +3,11 @@
 import { getContentEntityURI, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import Link from 'next/link'
 import If from '@/app/lib/If'
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import { EntityType } from '@prisma/client'
+import Card from '@/app/lib/puck/components/Card'
 
 export default function NewsList({ init, uploadPrefix }: {
     init: Paginated<SimplifiedContentEntity>,
@@ -25,25 +25,11 @@ export default function NewsList({ init, uploadPrefix }: {
 
     return <section className="container my-24 section">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
-            {page.items.map(post => <Link
-                href={getContentEntityURI(post.createdAt, post.slug)}
-                className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
-                key={post.id}>
-                <If condition={post.coverImagePublished != null}>
-                    <img src={`${uploadPrefix}/${post.coverImagePublished?.sha1}_thumb.webp`}
-                         alt={post.coverImagePublished?.altText}
-                         className="object-cover w-full rounded-3xl h-48 group-hover-scale"/>
-                </If>
-                <If condition={post.coverImagePublished == null}>
-                    <div
-                        className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
-                </If>
-
-                <div className="p-8">
-                    <p className="text-xl font-bold mb-1 fancy-link">{language === 'en' ? post.titlePublishedEN : post.titlePublishedZH}</p>
-                    <p className="text-sm secondary">{language === 'en' ? post.shortContentPublishedEN : post.shortContentPublishedZH}</p>
-                </div>
-            </Link>)}
+            {page.items.map(post => <Card href={getContentEntityURI(post.createdAt, post.slug)}
+                                          image={post.coverImagePublished}
+                                          title={language === 'en' ? post.titlePublishedEN : post.titlePublishedZH}
+                                          shortContent={language === 'en' ? post.shortContentPublishedEN : post.shortContentPublishedZH}
+                                          uploadPrefix={uploadPrefix} key={post.id}/>)}
         </div>
 
         <div className="flex items-center justify-center gap-3">

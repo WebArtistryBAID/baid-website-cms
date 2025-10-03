@@ -5,7 +5,7 @@ import ContainerConfig from '@/app/lib/puck/components/Container'
 import LatestNewsConfig from '@/app/lib/puck/components/LatestNewsConfig'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
 import QuoteConfig from '@/app/lib/puck/components/Quote'
-import { InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
+import { InFocusNewStudentsConfig, InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
 import StatisticsConfig from '@/app/lib/puck/components/Statistics'
 import HorizontalTopTextConfig from '@/app/lib/puck/components/HorizontalTopText'
 import HeroConfig from '@/app/lib/puck/components/HeroConfig'
@@ -27,6 +27,7 @@ import HeadingConfig from '@/app/lib/puck/components/Heading'
 import SpacerConfig from '@/app/lib/puck/components/Spacer'
 import ButtonConfig from '@/app/lib/puck/components/ButtonWidget'
 import NewsListConfig from '@/app/lib/puck/components/NewsListConfig'
+import { CardConfig } from '@/app/lib/puck/components/Card'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -41,6 +42,7 @@ export const PUCK_CONFIG: Config = {
         BentoBoxConfig,
         QuoteConfig,
         InFocusProjectsConfig,
+        InFocusNewStudentsConfig,
         StatisticsConfig,
         HorizontalTopTextConfig,
         HeroConfig,
@@ -57,12 +59,13 @@ export const PUCK_CONFIG: Config = {
         ClubsConfig,
         FeaturedProjectsConfig,
         ProjectCategoryConfig,
-        NewsListConfig
+        NewsListConfig,
+        CardConfig
     },
     categories: {
         foundational: {
             title: '基础',
-            components: [ 'ParagraphConfig', 'HeadingConfig', 'ButtonConfig' ]
+            components: [ 'ParagraphConfig', 'HeadingConfig', 'ButtonConfig', 'CardConfig' ]
         },
         layout: {
             title: '布局',
@@ -70,16 +73,16 @@ export const PUCK_CONFIG: Config = {
         },
         sections: {
             title: '内容区块',
-            components: [ 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig', 'BentoBoxConfig',
+            components: [ 'HeroConfig', 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig',
+                'BentoBoxConfig', 'NewsListConfig',
                 'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
                 'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig',
                 'SpecialtiesConfig', 'ContactsConfig', 'ApplicationStepsConfig', 'AnonymousQuoteConfig',
-                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig',
-                'NewsListConfig' ]
+                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig' ]
         },
         heroes: {
-            title: '首屏',
-            components: [ 'HeroConfig', 'InFocusProjectsConfig' ]
+            title: '主题首页',
+            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig' ]
         }
     }
 }
