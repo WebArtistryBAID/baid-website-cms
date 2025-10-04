@@ -143,7 +143,7 @@ export default function InFocusNewStudents({
                             whileInView={{ opacity: 1, transform: 'translateY(0)' }}
                             transition={{ duration: 0.8, delay: 0.3 }}
                             viewport={{ once: true }}
-                            className="w-full md:w-1/2 space-y-6 text-center md:text-left">
+                            className="w-full md:w-1/2 grid grid-cols-2 grid-rows-2 gap-6 text-center md:text-left">
                     {resources?.map((r, index) => <div key={index}>
                         <p className="text-6xl text-red-900">{r?.content}</p>
                         <p className="text-lg">{r?.name}</p>
